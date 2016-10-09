@@ -1,0 +1,102 @@
+﻿@model RBS.Models.UserModel
+
+@{
+    ViewBag.Title = "Delete";
+}
+
+<h2>Are you sure you want to delete this user?</h2>
+<br />
+<div>
+
+    @using (Html.BeginForm())
+    {
+        @Html.AntiForgeryToken()
+
+        <div class="form-actions no-color">
+            <input type="submit" value="Delete User" class="btn btn-danger" />&nbsp;&nbsp;
+            <a class="look-pointer" onclick="window.history.back()">Cancel</a>
+        </div>
+    }
+
+    <hr />
+
+    <div class="col-md-2">
+        <i class="big_icon_in_detail glyphicon glyphicon-user"></i>
+    </div>
+
+    <div class="col-md-4">
+        <dl class="dl-horizontal">
+            <dt>
+                @Html.DisplayNameFor(model => model.Role.Name)
+            </dt>
+
+            <dd>
+                @Html.DisplayFor(model => model.Role.Name)
+            </dd>
+
+            <dt>
+                @Html.DisplayNameFor(model => model.Username)
+            </dt>
+
+            <dd>
+                @Html.DisplayFor(model => model.Username)
+            </dd>
+
+            <dt>
+                @Html.DisplayNameFor(model => model.TokenID)
+            </dt>
+
+            <dd>
+                @Html.DisplayFor(model => model.TokenID)
+            </dd>
+
+            <dt>
+                @Html.DisplayNameFor(model => model.IsActive)
+            </dt>
+
+            <dd>
+                @Html.DisplayFor(model => model.IsActive)
+            </dd>
+        </dl>
+    </div>
+
+    <div class="col-md-6">
+        <dl class="dl-horizontal">
+            <dt>
+                @Html.DisplayNameFor(model => model.CreatedBy)
+            </dt>
+
+            <dd>
+                @Html.DisplayFor(model => model.CreatedBy)
+            </dd>
+
+            <dt>
+                @Html.DisplayNameFor(model => model.CreatedDate)
+            </dt>
+
+            <dd>
+                @Html.DisplayFor(model => model.CreatedDate)
+            </dd>
+
+            <dt>
+                @Html.DisplayNameFor(model => model.UpdatedBy)
+            </dt>
+
+            <dd>
+                @Html.DisplayFor(model => model.UpdatedBy)
+            </dd>
+
+            <dt>
+                @Html.DisplayNameFor(model => model.UpdatedDate)
+            </dt>
+
+            <dd>
+                @Html.DisplayFor(model => model.UpdatedDate)
+            </dd>
+
+        </dl>
+    </div>
+
+    <div class="clearfix"></div>
+
+</div>

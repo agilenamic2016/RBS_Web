@@ -1,0 +1,325 @@
+﻿body {
+    padding-top: 50px;
+    padding-bottom: 20px;
+   
+}
+
+/* Set padding to keep content from hitting the edges */
+.body-content {
+    padding-left: 15px;
+    padding-right: 15px;
+}
+.border-radius-3px
+{
+    border-radius:5px !important;
+}
+.status-label-listing-page
+{
+     padding-left: 4px;
+    padding-right: 4px;
+    line-height:25px;
+    font-size:1em;
+    color:#FFF;
+}
+/* Override the default bootstrap behavior where horizontal description lists 
+   will truncate terms that are too long to fit in the left column 
+*/
+.dl-horizontal dt {
+    white-space: normal;
+    font-weight: normal;
+    /*border-right: solid 1px #ccc;*/
+    /*padding-right: 20px;  fixed of enhancement 3 March 2015*/
+    padding-bottom: 10px;
+}
+
+.dl-horizontal dd {
+    font-weight: bold;
+    border-left: solid 1px #ccc;
+    padding-left: 20px;
+    /*white-space: nowrap; fixed of enhancement 3 March 2015*/
+}
+
+/* Extend the length of the navigation menu*/
+@media (min-width: 1200px) {
+    .container {
+        max-width: 1280px !important;
+    }
+}
+
+.cancel-label-bold {
+    font-weight: normal;
+}
+
+/* Set width on the form input elements since they're 100% wide by default */
+input,
+select,
+textarea {
+    max-width: 280px;
+}
+
+.big_icon_in_detail {
+    font-size: 10em;
+}
+
+.link_button {
+    color: #333;
+    display: inline-block;
+    padding: 6px 12px;
+    margin-bottom: 0;
+    font-size: 14px;
+    font-weight: normal;
+    line-height: 1.428571429;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    cursor: pointer;
+    border: 1px solid transparent;
+    -webkit-user-select: none;
+    border-color: #adadad;
+    border-radius: 4px;
+    float: left;
+}
+
+.first_button {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    border-right: none;
+}
+
+.last_button {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+.mid_button {
+    border-radius: 0;
+    border-right: none;
+}
+
+.link_button:hover {
+    text-decoration: none;
+    color: #333;
+    background-color: #ebebeb;
+    border-color: #adadad;
+}
+
+.action_icon {
+    font-size: 0.9em;
+}
+
+.right_control
+{
+    margin-top: 20px;
+}
+
+input.search_textbox
+{
+    /*border-right: none !important;*/
+    box-shadow: none !important; 
+    min-width: 100%;
+}
+
+.search_textbox:focus
+{
+    outline: 0 !important;
+    -webkit-appearance:none !important;
+    box-shadow: none !important; 
+    border-color: #ccc !important;
+}
+
+.remove-padding {
+    padding: 0px !important;
+}
+
+.remove-cursor {
+    cursor: text;
+}
+
+.action_button_group a
+{   
+    padding: 3px 12px;
+    font-size: 0.8em;
+    border-top: none;
+    border-bottom: none;
+    border-right: none;
+    border-radius: 0;
+}
+
+.action_button_group .first_button, .action_button_group .only_button
+{
+    border-left: none; 
+}
+
+.action_button_group > .link_button {
+    float: none !important;
+}
+
+.dropdown-menu > li > a {
+    cursor: pointer;
+}
+
+.look-pointer {
+    cursor: pointer;
+}
+
+.red_hover:hover {
+    color: red;
+}
+
+.clear_search {
+    border-left: none !important;
+    border-right: 1px solid transparent !important;
+    background-color: transparent;
+    outline: 0 !important;
+}
+
+.clear_search:hover, .clear_search:focus{
+    border: 1px solid #ccc !important;
+
+}
+
+.input-group-btn > .dropdown-toggle {
+    border-right: none;
+}
+
+input-group-btn
+{
+    white-space: nowrap;
+    margin: 0px !important;
+    padding: 0px !important;
+}
+
+.clear_search i{
+    color: #ccc;
+}
+
+.date_range input
+{
+    position: relative;
+    width: 130px !important;
+    padding-right: 25px;
+}
+
+.date_range
+{
+    margin-top: 8px;
+    margin-bottom: 8px;
+}
+
+.show_hide_options
+{
+    margin-top: 5px;
+    font-size: 0.8em;
+}
+
+@media (max-width: 768px) {
+    .col-md-5 {
+        padding-right: 0px !important;
+        width: 380px;
+    }
+
+    /* Side Tab CSS */
+    .conLinRig 
+    {
+        position: fixed;
+        top: 0;
+        right: 0;
+        z-index: 99;
+        margin-top: 320px;
+        margin-right: -54px;
+
+        padding: 10px;
+        transform: rotate(-90deg);
+        -webkit-transform: rotate(-90deg);
+        -moz-transform: rotate(-90deg);
+        -o-transform: rotate(-90deg);
+        -ms-transform: rotate(-90deg);
+        filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=3);
+    }
+}
+
+@media (min-width: 768px) {
+    /* Side Tab CSS */
+    .conLinRig 
+    {
+        display: none
+    }
+}
+
+.vcenter {
+    display: inline-block;
+    vertical-align: middle;
+    float: none;
+    line-height: 34px;
+}
+
+.checkbox {
+    padding: 0 !important;
+}
+
+.checkbox div {
+    padding: 0 !important;
+    width: 100px;
+}
+
+.advance_search {
+    margin-bottom: 8px;
+}
+
+.clear_date {
+    border-right: 1px solid #ccc !important;
+}
+
+.btnFromClear {
+    position: absolute !important;
+    top: 9px !important;
+    right: 308px;
+    z-index: 2;
+    cursor:pointer;
+    color:#ccc;
+    
+}
+
+.btnToClear {
+    position: absolute !important;
+    top: 9px !important;
+    right: 208px;
+    z-index: 2;
+    cursor:pointer;
+    color:#ccc;
+}
+
+#ImportValue {
+    max-width: 1190px !important;
+    width: 100%;
+}
+
+#PurchaseDateFrom {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+#LastUpdatedDate {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    border-top-right-radius: 4px;
+    border-bottom-right-radius: 4px;
+}
+
+#PurchaseDateTo {
+    border-radius: 4px;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+.fix-height {
+    display: inline;
+    height: 34px;
+}
+
+/* Hide the Created Control */
+#CreatedDate
+{
+    display: none;
+}
+

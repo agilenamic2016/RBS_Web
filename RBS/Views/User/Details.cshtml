@@ -1,0 +1,116 @@
+﻿@model RBS.Models.UserModel
+
+@{
+    ViewBag.Title = "Details";
+}
+
+<link href="~/Content/bootstrap-switch/bootstrap3/bootstrap-switch.min.css" rel="stylesheet" />
+
+<h2>User Details</h2>
+<br />
+
+<div class="link_button_group">
+    <a class="link_button first_button" onclick="window.history.back();"><i class="action_icon glyphicon glyphicon-arrow-left"></i>&nbsp;&nbsp;Back to List</a>
+    <a class="link_button last_button" href="@Url.Action("Edit", new { id = Model.ID })"><i class="action_icon glyphicon glyphicon-pencil"></i>&nbsp;&nbsp;Edit</a>
+</div>
+
+<div class="clearfix"></div>
+<hr />
+
+<div class="col-md-2">
+    <i class="big_icon_in_detail glyphicon glyphicon-user"></i>
+</div>
+
+<div class="col-md-4">
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.Role.Name)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Role.Name)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Username)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Username)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.TokenID)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.TokenID)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.IsActive)
+        </dt>
+
+        <dd>
+            @if (Model.IsActive)
+            {
+                <input type="checkbox" class="switch" data-off-text="Inactive" data-on-text="Active" data-size="mini" data-on-color="success" data-handle-width="45" data-label-width="10" checked disabled/>
+            }
+            else
+            {
+                <input type="checkbox" class="switch" data-off-text="Inactive" data-on-text="Active" data-size="mini" data-on-color="success" data-handle-width="45" data-label-width="10" disabled />
+            }
+            
+        </dd>
+    </dl>
+</div>
+
+<div class="col-md-6">
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.CreatedBy)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.CreatedBy)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.CreatedDate)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.CreatedDate)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.UpdatedBy)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.UpdatedBy)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.UpdatedDate)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.UpdatedDate)
+        </dd>
+
+    </dl>
+</div>
+    
+<div class="clearfix"></div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+
+    <script src="~/Scripts/bootstrap-switch.js"></script>
+    <script type="text/javascript">
+        $("input.switch").bootstrapSwitch();
+    </script>
+
+}
+
