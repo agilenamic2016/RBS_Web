@@ -22,7 +22,7 @@ namespace RBS.ApiControllers
     {
         private RBSContext db = new RBSContext();
         private Context context = new Context();
-
+        string a = "testconnection";
         [HttpPost]
         public IHttpActionResult GetLogin(JObject jsonObj)
         {
