@@ -18,6 +18,19 @@ namespace RBS.Migrations
                 .PrimaryKey(t => t.ID);
             
             CreateTable(
+                "dbo.DepartmentModel",
+                c => new
+                    {
+                        ID = c.Int(nullable: false, identity: true),
+                        Name = c.String(nullable: false),
+                        CreatedBy = c.String(),
+                        CreatedDate = c.DateTime(),
+                        UpdatedBy = c.String(),
+                        UpdatedDate = c.DateTime(),
+                    })
+                .PrimaryKey(t => t.ID);
+            
+            CreateTable(
                 "dbo.LogModel",
                 c => new
                     {
@@ -47,6 +60,9 @@ namespace RBS.Migrations
                         CreatedDate = c.DateTime(),
                         UpdatedBy = c.String(),
                         UpdatedDate = c.DateTime(),
+                        RecurenceType = c.Int(nullable: false),
+                        SCCStartDate = c.String(maxLength: 10),
+                        SCCEndDate = c.String(maxLength: 10),
                     })
                 .PrimaryKey(t => t.ID)
                 .ForeignKey("dbo.RoomModel", t => t.RoomID)
@@ -89,9 +105,11 @@ namespace RBS.Migrations
                     {
                         ID = c.Int(nullable: false, identity: true),
                         RoleID = c.Int(),
+                        DepartmentID = c.Int(),
                         Username = c.String(nullable: false, maxLength: 50),
+                        Name = c.String(nullable: false, maxLength: 100),
                         Password = c.String(maxLength: 128),
-                        TokenID = c.String(maxLength: 50),
+                        TokenID = c.String(maxLength: 250),
                         IsActive = c.Boolean(nullable: false),
                         CreatedBy = c.String(),
                         CreatedDate = c.DateTime(),
@@ -99,8 +117,10 @@ namespace RBS.Migrations
                         UpdatedDate = c.DateTime(),
                     })
                 .PrimaryKey(t => t.ID)
+                .ForeignKey("dbo.DepartmentModel", t => t.DepartmentID)
                 .ForeignKey("dbo.RoleModel", t => t.RoleID)
-                .Index(t => t.RoleID);
+                .Index(t => t.RoleID)
+                .Index(t => t.DepartmentID);
             
             CreateTable(
                 "dbo.RoleModel",
@@ -138,9 +158,11 @@ namespace RBS.Migrations
             DropForeignKey("dbo.SessionModel", "UserID", "dbo.UserModel");
             DropForeignKey("dbo.ParticipantModel", "UserID", "dbo.UserModel");
             DropForeignKey("dbo.UserModel", "RoleID", "dbo.RoleModel");
+            DropForeignKey("dbo.UserModel", "DepartmentID", "dbo.DepartmentModel");
             DropForeignKey("dbo.ParticipantModel", "MeetingID", "dbo.MeetingModel");
             DropForeignKey("dbo.MeetingModel", "RoomID", "dbo.RoomModel");
             DropIndex("dbo.SessionModel", new[] { "UserID" });
+            DropIndex("dbo.UserModel", new[] { "DepartmentID" });
             DropIndex("dbo.UserModel", new[] { "RoleID" });
             DropIndex("dbo.ParticipantModel", new[] { "UserID" });
             DropIndex("dbo.ParticipantModel", new[] { "MeetingID" });
@@ -152,6 +174,7 @@ namespace RBS.Migrations
             DropTable("dbo.RoomModel");
             DropTable("dbo.MeetingModel");
             DropTable("dbo.LogModel");
+            DropTable("dbo.DepartmentModel");
             DropTable("dbo.ConfigModel");
         }
     }

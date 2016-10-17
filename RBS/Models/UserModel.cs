@@ -12,14 +12,19 @@ namespace RBS.Models
 
         // FK
         public int? RoleID { get; set; }
+        public int? DepartmentID { get; set; }
 
         // Main fields
         [Required]
-        [DisplayName("Username")]
+        [DisplayName("Email")]
         [StringLength(50), RegularExpression(@"^[a-z0-9][-a-z0-9.!#$%&'*+-=?^_`{|}~\/]+@([-a-z0-9]+\.)+[a-z]{2,5}$", ErrorMessage = "Please enter valid email address")]
         public string Username { get; set; }
 
-        [StringLength(128, MinimumLength = 8, ErrorMessage = "We personally think that password longer than 8 characters is more secure.")]
+        [Required]
+        [StringLength(100), RegularExpression(@"^[a-zA-Z]'?([a-zA-Z]|\.|-)+$", ErrorMessage = "We think that name should not have any special characters")]
+        public string Name { get; set; }
+
+        [StringLength(128, MinimumLength = 8, ErrorMessage = "We personally think that password longer than 8 characters is more secure")]
         public string Password { get; set; }
 
         [StringLength(250)]
@@ -40,5 +45,6 @@ namespace RBS.Models
 
         // Navigation properties
         public virtual RoleModel Role { get; set; }
+        public virtual DepartmentModel Department { get; set; }
     }
 }

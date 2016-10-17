@@ -1,0 +1,71 @@
+﻿@model RBS.Models.DepartmentModel
+
+@{
+    ViewBag.Title = "Details";
+}
+
+<h2>Department Details</h2>
+<br />
+
+<div class="link_button_group">
+    <a class="link_button first_button" onclick="window.history.back();"><i class="action_icon glyphicon glyphicon-arrow-left"></i>&nbsp;&nbsp;Back to List</a>
+    <a class="link_button last_button" href="@Url.Action("Edit", new { id = Model.ID })"><i class="action_icon glyphicon glyphicon-pencil"></i>&nbsp;&nbsp;Edit</a>
+</div>
+
+<div class="clearfix"></div>
+<hr />
+
+<div class="col-md-2">
+    <i class="big_icon_in_detail glyphicon glyphicon-tags"></i>
+</div>
+
+<div class="col-md-4">
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.Name)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Name)
+        </dd>
+    </dl>
+</div>
+
+<div class="col-md-6">
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.CreatedBy)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.CreatedBy)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.CreatedDate)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.CreatedDate)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.UpdatedBy)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.UpdatedBy)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.UpdatedDate)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.UpdatedDate)
+        </dd>
+
+    </dl>
+</div>
+
+<div class="clearfix"></div>

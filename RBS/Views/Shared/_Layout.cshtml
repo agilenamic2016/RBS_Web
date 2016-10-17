@@ -23,8 +23,9 @@
                 @if (HttpContext.Current.Session["IsAuthenticated"] != null && HttpContext.Current.Session["IsAuthenticated"].ToString().ToLower().Equals("true"))
                 {
                     <ul class="nav navbar-nav">
-                        <li>@Html.ActionLink("User", "Index", "User")</li>
+                        <li>@Html.ActionLink("Department", "Index", "Department")</li>
                         <li>@Html.ActionLink("Room", "Index", "Room")</li>
+                        <li>@Html.ActionLink("User", "Index", "User")</li>
                         <li>@Html.ActionLink("Change Password", "ChangePassword", "User")</li>
                     </ul>
 

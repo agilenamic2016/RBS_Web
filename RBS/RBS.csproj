@@ -159,6 +159,7 @@
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
+    <Compile Include="Controllers\DepartmentController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\RoomController.cs" />
     <Compile Include="Controllers\UserController.cs" />
@@ -176,12 +177,13 @@
     <Compile Include="Library\Context.cs" />
     <Compile Include="Library\Log.cs" />
     <Compile Include="Library\Security.cs" />
-    <Compile Include="Migrations\201606040553210_InitialCreate.cs" />
-    <Compile Include="Migrations\201606040553210_InitialCreate.Designer.cs">
-      <DependentUpon>201606040553210_InitialCreate.cs</DependentUpon>
+    <Compile Include="Migrations\201610171509292_InitialCreate.cs" />
+    <Compile Include="Migrations\201610171509292_InitialCreate.Designer.cs">
+      <DependentUpon>201610171509292_InitialCreate.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\ConfigModel.cs" />
+    <Compile Include="Models\DepartmentModel.cs" />
     <Compile Include="Models\LogModel.cs" />
     <Compile Include="Models\ParticipantModel.cs" />
     <Compile Include="Models\RoleModel.cs" />
@@ -271,6 +273,11 @@
     <Content Include="Views\Room\Edit.cshtml" />
     <Content Include="Views\Room\Index.cshtml" />
     <Content Include="Views\User\ChangePassword.cshtml" />
+    <Content Include="Views\Department\Create.cshtml" />
+    <Content Include="Views\Department\Delete.cshtml" />
+    <Content Include="Views\Department\Details.cshtml" />
+    <Content Include="Views\Department\Edit.cshtml" />
+    <Content Include="Views\Department\Index.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
@@ -279,11 +286,6 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Migrations\201606040553210_InitialCreate.resx">
-      <DependentUpon>201606040553210_InitialCreate.cs</DependentUpon>
-    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <COMReference Include="stdole">
@@ -295,6 +297,11 @@
       <Isolated>False</Isolated>
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </COMReference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Migrations\201610171509292_InitialCreate.resx">
+      <DependentUpon>201610171509292_InitialCreate.cs</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

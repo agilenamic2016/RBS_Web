@@ -13,6 +13,7 @@ namespace RBS.DAL
         public DbSet<MeetingModel> Meetings { get; set; }
         public DbSet<ParticipantModel> Participants { get; set; }
         public DbSet<RoleModel> Roles { get; set; }
+        public DbSet<DepartmentModel> Departments { get; set; }
         public DbSet<RoomModel> Rooms { get; set; }
         public DbSet<SessionModel> Sessions { get; set; }
         public DbSet<UserModel> Users { get; set; }
