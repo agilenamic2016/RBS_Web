@@ -76,7 +76,7 @@ namespace RBS.Controllers
         {
             ViewBag.SearchTerm = searchTerm;
 
-            var users = db.Users.Include(u => u.Role);
+            var users = db.Users.Include(d => d.Department).Include(r => r.Role);
 
             if (searchTerm != null)
             {
@@ -92,10 +92,11 @@ namespace RBS.Controllers
             if (!String.IsNullOrEmpty(searchTerm))
             {
                 users = users.Where(s => s.Username.Contains(searchTerm)
+                                    || s.Name.Contains(searchTerm)
                                     || s.Role.Name.Contains(searchTerm));
             }
 
-            users = users.OrderBy(s => s.Username);
+            users = users.OrderBy(d => d.DepartmentID).ThenBy(s => s.Name);
             int pageSize = Config.PageSize;
             int pageNumber = (page ?? 1);
 
@@ -130,7 +131,7 @@ namespace RBS.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create([Bind(Include = "ID,RoleID,Username,Password,TokenID,IsActive,CreatedBy,CreatedDate,UpdatedBy,UpdatedDate")] UserModel userModel)
+        public ActionResult Create([Bind(Include = "ID,RoleID,DepartmentID,Name,Username,Password,TokenID,IsActive,CreatedBy,CreatedDate,UpdatedBy,UpdatedDate")] UserModel userModel)
         {
             if (ModelState.IsValid)
             {
@@ -201,7 +202,7 @@ namespace RBS.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit([Bind(Include = "ID,RoleID,Username,Password,TokenID,IsActive,CreatedBy,CreatedDate,UpdatedBy,UpdatedDate")] UserModel userModel)
+        public ActionResult Edit([Bind(Include = "ID,RoleID,DepartmentID,Name,Username,Password,TokenID,IsActive,CreatedBy,CreatedDate,UpdatedBy,UpdatedDate")] UserModel userModel)
         {
             if (ModelState.IsValid)
             {

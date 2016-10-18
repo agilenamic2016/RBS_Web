@@ -1,24 +1,48 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
 using System.Linq;
 using System.Net;
-using System.Web;
 using System.Web.Mvc;
 using RBS.DAL;
 using RBS.Models;
+using RBS.Library;
+using PagedList;
 
 namespace RBS.Controllers
 {
-    public class DepartmentController : Controller
+    public class DepartmentController : BaseController
     {
         private RBSContext db = new RBSContext();
 
         // GET: Department
-        public ActionResult Index()
+        public ActionResult Index(string searchTerm, int? page, string currentFilter)
         {
-            return View(db.Departments.ToList());
+            ViewBag.SearchTerm = searchTerm;
+
+            IQueryable<DepartmentModel> departments = db.Departments;
+
+            if (searchTerm != null)
+            {
+                page = 1;
+            }
+            else
+            {
+                searchTerm = currentFilter;
+            }
+
+            ViewBag.CurrentFilter = searchTerm;
+
+            if (!String.IsNullOrEmpty(searchTerm))
+            {
+                departments = departments.Where(s => s.Name.Contains(searchTerm));
+            }
+
+            departments = departments.OrderBy(s => s.Name);
+            int pageSize = Config.PageSize;
+            int pageNumber = (page ?? 1);
+
+            return View(departments.ToPagedList(pageNumber, pageSize));
         }
 
         // GET: Department/Details/5
@@ -51,6 +75,9 @@ namespace RBS.Controllers
         {
             if (ModelState.IsValid)
             {
+                departmentModel.CreatedBy = context.UserID;
+                departmentModel.CreatedDate = DateTime.Now;
+
                 db.Departments.Add(departmentModel);
                 db.SaveChanges();
                 return RedirectToAction("Index");
@@ -83,6 +110,9 @@ namespace RBS.Controllers
         {
             if (ModelState.IsValid)
             {
+                departmentModel.UpdatedBy = context.UserID;
+                departmentModel.UpdatedDate = DateTime.Now;
+
                 db.Entry(departmentModel).State = EntityState.Modified;
                 db.SaveChanges();
                 return RedirectToAction("Index");

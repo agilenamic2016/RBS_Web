@@ -75,7 +75,7 @@ namespace RBS.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create([Bind(Include = "ID,Name,CreatedBy,CreatedDate,UpdatedBy,UpdatedDate")] RoomModel roomModel, HttpPostedFileBase file)
+        public ActionResult Create([Bind(Include = "ID,Name,Remark,CreatedBy,CreatedDate,UpdatedBy,UpdatedDate")] RoomModel roomModel, HttpPostedFileBase file)
         {
             if (ModelState.IsValid)
             {
@@ -153,7 +153,7 @@ namespace RBS.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit([Bind(Include = "ID,Name,PhotoFilePath,PhotoFileName,CreatedBy,CreatedDate,UpdatedBy,UpdatedDate")] RoomModel roomModel, HttpPostedFileBase file)
+        public ActionResult Edit([Bind(Include = "ID,Name,Remark,PhotoFilePath,PhotoFileName,CreatedBy,CreatedDate,UpdatedBy,UpdatedDate")] RoomModel roomModel, HttpPostedFileBase file)
         {
             string errorMsg = string.Empty;
 
@@ -196,10 +196,12 @@ namespace RBS.Controllers
 
                 if (errorMsg.Length == 0)
                 {
-                    // Prevent duplicate name
-                    RoomModel room = (from s in db.Rooms where s.Name.Equals(roomModel.Name) select s).FirstOrDefault();
-                    if (room == null)
+                    RoomModel roomToCompare = (from s in db.Rooms where s.ID.Equals(roomModel.ID) select s).FirstOrDefault();
+
+                    // If the Meeting Room Name remain unchanged should skip checking below
+                    if (roomToCompare.Name.ToLower().Equals(roomModel.Name.ToLower()))
                     {
+                        db.Entry(roomToCompare).State = EntityState.Detached;
                         db.Entry(roomModel).State = EntityState.Modified;
                         db.SaveChanges();
 
@@ -219,7 +221,32 @@ namespace RBS.Controllers
                     }
                     else
                     {
-                        ViewBag.ErrorMessage = context.STR_ERROR_MSG_MEETINGROOM_DUPLICATE;
+                        // Prevent duplicate name
+                        RoomModel room = (from s in db.Rooms where s.Name.Equals(roomModel.Name) select s).FirstOrDefault();
+                        if (room == null)
+                        {
+                            db.Entry(roomToCompare).State = EntityState.Detached;
+                            db.Entry(roomModel).State = EntityState.Modified;
+                            db.SaveChanges();
+
+                            // After saving, remove the old photo
+                            if (file != null && file.ContentLength > 0)
+                            {
+                                string oldpath = Server.MapPath(ConfigurationManager.AppSettings["PhotoPath"].ToString());
+                                oldpath = Path.Combine(oldpath, oldRoom.PhotoFileName);
+
+                                if (Directory.Exists(oldpath))
+                                {
+                                    System.IO.File.Delete(oldpath);
+                                }
+                            }
+
+                            return RedirectToAction("Index");
+                        }
+                        else
+                        {
+                            ViewBag.ErrorMessage = context.STR_ERROR_MSG_MEETINGROOM_DUPLICATE;
+                        }
                     }
                 }
             }
