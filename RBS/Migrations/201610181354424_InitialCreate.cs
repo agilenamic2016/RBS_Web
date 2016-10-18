@@ -76,6 +76,7 @@ namespace RBS.Migrations
                         Name = c.String(nullable: false, maxLength: 100),
                         PhotoFilePath = c.String(),
                         PhotoFileName = c.String(maxLength: 100),
+                        Remark = c.String(),
                         CreatedBy = c.String(),
                         CreatedDate = c.DateTime(),
                         UpdatedBy = c.String(),

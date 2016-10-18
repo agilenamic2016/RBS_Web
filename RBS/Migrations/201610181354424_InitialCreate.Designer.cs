@@ -13,7 +13,7 @@ namespace RBS.Migrations
         
         string IMigrationMetadata.Id
         {
-            get { return "201610171509292_InitialCreate"; }
+            get { return "201610181354424_InitialCreate"; }
         }
         
         string IMigrationMetadata.Source

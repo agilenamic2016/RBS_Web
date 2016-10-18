@@ -18,6 +18,8 @@ namespace RBS.Models
         public string PhotoFilePath { get; set; }
         [StringLength(100)]
         public string PhotoFileName { get; set; }
+        [DisplayName("Description")]
+        public string Remark { get; set; }
 
         // Tracking fields
         [DisplayName("Created By")]
