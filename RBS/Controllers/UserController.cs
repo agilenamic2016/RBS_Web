@@ -121,6 +121,7 @@ namespace RBS.Controllers
         public ActionResult Create()
         {
             ViewBag.RoleID = new SelectList(db.Roles, "ID", "Name");
+            ViewBag.DepartmentID = new SelectList(db.Departments, "ID", "Name");
             return View();
         }
 
@@ -172,6 +173,7 @@ namespace RBS.Controllers
             }
 
             ViewBag.RoleID = new SelectList(db.Roles, "ID", "Name", userModel.RoleID);
+            ViewBag.DepartmentID = new SelectList(db.Departments, "ID", "Name", userModel.DepartmentID);
             return View(userModel);
         }
 
@@ -182,12 +184,15 @@ namespace RBS.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
+            
             UserModel userModel = db.Users.Find(id);
             if (userModel == null)
             {
                 return HttpNotFound();
             }
+
             ViewBag.RoleID = new SelectList(db.Roles, "ID", "Name", userModel.RoleID);
+            ViewBag.DepartmentID = new SelectList(db.Departments, "ID", "Name", userModel.DepartmentID);
             return View(userModel);
         }
 
@@ -214,7 +219,9 @@ namespace RBS.Controllers
                 db.SaveChanges();
                 return RedirectToAction("Index");
             }
+
             ViewBag.RoleID = new SelectList(db.Roles, "ID", "Name", userModel.RoleID);
+            ViewBag.DepartmentID = new SelectList(db.Departments, "ID", "Name", userModel.DepartmentID);
             return View(userModel);
         }
 

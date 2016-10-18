@@ -816,7 +816,6 @@ namespace RBS.ApiControllers
             bool hasValidEmail = false;
 
             string FromName = "Room Booking System";
-            //string FromEmail = "agilenamic@gmail.com";
             string FromEmail = HostingEnvironment.MapPath(ConfigurationManager.AppSettings["emailID"].ToString());
 
             MailMessage mailMessage = new MailMessage();
@@ -832,9 +831,6 @@ namespace RBS.ApiControllers
                     mailMessage.To.Add(new MailAddress(user.Username));
                 }
             }
-            
-            //string ToName = "Testing";
-            //string ToEmail = "chee.ann@hotmail.com";
             
             // Only Trigger sending email when there is at least one user being added
             if (hasValidEmail)
