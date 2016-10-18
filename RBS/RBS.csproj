@@ -177,9 +177,9 @@
     <Compile Include="Library\Context.cs" />
     <Compile Include="Library\Log.cs" />
     <Compile Include="Library\Security.cs" />
-    <Compile Include="Migrations\201610171509292_InitialCreate.cs" />
-    <Compile Include="Migrations\201610171509292_InitialCreate.Designer.cs">
-      <DependentUpon>201610171509292_InitialCreate.cs</DependentUpon>
+    <Compile Include="Migrations\201610181354424_InitialCreate.cs" />
+    <Compile Include="Migrations\201610181354424_InitialCreate.Designer.cs">
+      <DependentUpon>201610181354424_InitialCreate.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\ConfigModel.cs" />
@@ -299,8 +299,8 @@
     </COMReference>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\201610171509292_InitialCreate.resx">
-      <DependentUpon>201610171509292_InitialCreate.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\201610181354424_InitialCreate.resx">
+      <DependentUpon>201610181354424_InitialCreate.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>
