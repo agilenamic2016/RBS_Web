@@ -29,7 +29,10 @@ namespace RBS.Controllers
             }
             else
             {
-                return RedirectToAction("Index", "User");
+                if (context.IsAdmin)
+                    return RedirectToAction("Index", "User");
+                else
+                    return RedirectToAction("Index", "Room");
             }
         }
 
@@ -49,7 +52,10 @@ namespace RBS.Controllers
                 }
                 else
                 {
-                    return RedirectToAction("Index", "User");
+                    if (context.IsAdmin)
+                        return RedirectToAction("Index", "User");
+                    else
+                        return RedirectToAction("Index", "Meeting");
                 }
             }
             else
@@ -74,56 +80,77 @@ namespace RBS.Controllers
         // GET: User
         public ActionResult Index(string searchTerm, int? page, string currentFilter)
         {
-            ViewBag.SearchTerm = searchTerm;
-
-            var users = db.Users.Include(d => d.Department).Include(r => r.Role);
-
-            if (searchTerm != null)
+            if (context.IsAdmin)
             {
-                page = 1;
+                ViewBag.SearchTerm = searchTerm;
+
+                var users = db.Users.Include(d => d.Department).Include(r => r.Role);
+
+                if (searchTerm != null)
+                {
+                    page = 1;
+                }
+                else
+                {
+                    searchTerm = currentFilter;
+                }
+
+                ViewBag.CurrentFilter = searchTerm;
+
+                if (!String.IsNullOrEmpty(searchTerm))
+                {
+                    users = users.Where(s => s.Username.Contains(searchTerm)
+                                        || s.Name.Contains(searchTerm)
+                                        || s.Role.Name.Contains(searchTerm));
+                }
+
+                users = users.OrderBy(d => d.DepartmentID).ThenBy(s => s.Name);
+                int pageSize = Config.PageSize;
+                int pageNumber = (page ?? 1);
+
+                return View(users.ToPagedList(pageNumber, pageSize));
             }
             else
             {
-                searchTerm = currentFilter;
+                return RedirectToAction("Error", "Home");
             }
-
-            ViewBag.CurrentFilter = searchTerm;
-
-            if (!String.IsNullOrEmpty(searchTerm))
-            {
-                users = users.Where(s => s.Username.Contains(searchTerm)
-                                    || s.Name.Contains(searchTerm)
-                                    || s.Role.Name.Contains(searchTerm));
-            }
-
-            users = users.OrderBy(d => d.DepartmentID).ThenBy(s => s.Name);
-            int pageSize = Config.PageSize;
-            int pageNumber = (page ?? 1);
-
-            return View(users.ToPagedList(pageNumber, pageSize));
         }
 
         // GET: User/Details/5
         public ActionResult Details(int? id)
         {
-            if (id == null)
+            if (context.IsAdmin)
             {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+                if (id == null)
+                {
+                    return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+                }
+                UserModel userModel = db.Users.Find(id);
+                if (userModel == null)
+                {
+                    return HttpNotFound();
+                }
+                return View(userModel);
             }
-            UserModel userModel = db.Users.Find(id);
-            if (userModel == null)
+            else
             {
-                return HttpNotFound();
+                return RedirectToAction("Error", "Home");
             }
-            return View(userModel);
         }
 
         // GET: User/Create
         public ActionResult Create()
         {
-            ViewBag.RoleID = new SelectList(db.Roles, "ID", "Name");
-            ViewBag.DepartmentID = new SelectList(db.Departments, "ID", "Name");
-            return View();
+            if (context.IsAdmin)
+            {
+                ViewBag.RoleID = new SelectList(db.Roles, "ID", "Name");
+                ViewBag.DepartmentID = new SelectList(db.Departments, "ID", "Name");
+                return View();
+            }
+            else
+            {
+                return RedirectToAction("Error", "Home");
+            }
         }
 
         // POST: User/Create
@@ -181,20 +208,27 @@ namespace RBS.Controllers
         // GET: User/Edit/5
         public ActionResult Edit(int? id)
         {
-            if (id == null)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-            }
+            if (context.IsAdmin)
+            { 
+                if (id == null)
+                {
+                    return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+                }
             
-            UserModel userModel = db.Users.Find(id);
-            if (userModel == null)
-            {
-                return HttpNotFound();
-            }
+                UserModel userModel = db.Users.Find(id);
+                if (userModel == null)
+                {
+                    return HttpNotFound();
+                }
 
-            ViewBag.RoleID = new SelectList(db.Roles, "ID", "Name", userModel.RoleID);
-            ViewBag.DepartmentID = new SelectList(db.Departments, "ID", "Name", userModel.DepartmentID);
-            return View(userModel);
+                ViewBag.RoleID = new SelectList(db.Roles, "ID", "Name", userModel.RoleID);
+                ViewBag.DepartmentID = new SelectList(db.Departments, "ID", "Name", userModel.DepartmentID);
+                return View(userModel);
+            }
+            else
+            {
+                return RedirectToAction("Error", "Home");
+            }
         }
 
         // POST: User/Edit/5
@@ -277,16 +311,23 @@ namespace RBS.Controllers
         // GET: User/Delete/5
         public ActionResult Delete(int? id)
         {
-            if (id == null)
+            if (context.IsAdmin)
             {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+                if (id == null)
+                {
+                    return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+                }
+                UserModel userModel = db.Users.Find(id);
+                if (userModel == null)
+                {
+                    return HttpNotFound();
+                }
+                return View(userModel);
             }
-            UserModel userModel = db.Users.Find(id);
-            if (userModel == null)
+            else
             {
-                return HttpNotFound();
+                return RedirectToAction("Error", "Home");
             }
-            return View(userModel);
         }
 
         // POST: User/Delete/5
@@ -367,6 +408,7 @@ namespace RBS.Controllers
                     Session["Context"] = context;
                     Session["IsAuthenticated"] = context.IsAuthenticated.ToString();
                     Session["UserID"] = context.UserID;
+                    Session["IsAdmin"] = context.IsAdmin;
                 }
                 else
                 {

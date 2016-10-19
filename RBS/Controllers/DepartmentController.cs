@@ -18,52 +18,73 @@ namespace RBS.Controllers
         // GET: Department
         public ActionResult Index(string searchTerm, int? page, string currentFilter)
         {
-            ViewBag.SearchTerm = searchTerm;
-
-            IQueryable<DepartmentModel> departments = db.Departments;
-
-            if (searchTerm != null)
+            if (context.IsAdmin)
             {
-                page = 1;
+                ViewBag.SearchTerm = searchTerm;
+
+                IQueryable<DepartmentModel> departments = db.Departments;
+
+                if (searchTerm != null)
+                {
+                    page = 1;
+                }
+                else
+                {
+                    searchTerm = currentFilter;
+                }
+
+                ViewBag.CurrentFilter = searchTerm;
+
+                if (!String.IsNullOrEmpty(searchTerm))
+                {
+                    departments = departments.Where(s => s.Name.Contains(searchTerm));
+                }
+
+                departments = departments.OrderBy(s => s.Name);
+                int pageSize = Config.PageSize;
+                int pageNumber = (page ?? 1);
+
+                return View(departments.ToPagedList(pageNumber, pageSize));
             }
             else
             {
-                searchTerm = currentFilter;
+                return RedirectToAction("Error", "Home");
             }
-
-            ViewBag.CurrentFilter = searchTerm;
-
-            if (!String.IsNullOrEmpty(searchTerm))
-            {
-                departments = departments.Where(s => s.Name.Contains(searchTerm));
-            }
-
-            departments = departments.OrderBy(s => s.Name);
-            int pageSize = Config.PageSize;
-            int pageNumber = (page ?? 1);
-
-            return View(departments.ToPagedList(pageNumber, pageSize));
         }
 
         // GET: Department/Details/5
         public ActionResult Details(int? id)
         {
-            if (id == null)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            if (context.IsAdmin)
+            { 
+                if (id == null)
+                {
+                    return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+                }
+                DepartmentModel departmentModel = db.Departments.Find(id);
+                if (departmentModel == null)
+                {
+                    return HttpNotFound();
+                }
+                return View(departmentModel);
             }
-            DepartmentModel departmentModel = db.Departments.Find(id);
-            if (departmentModel == null)
+            else
             {
-                return HttpNotFound();
+                return RedirectToAction("Error", "Home");
             }
-            return View(departmentModel);
         }
 
         // GET: Department/Create
         public ActionResult Create()
         {
-            return View();
+            if (context.IsAdmin)
+            { 
+                return View();
+            }
+            else
+            {
+                return RedirectToAction("Error", "Home");
+            }
         }
 
         // POST: Department/Create
@@ -89,16 +110,23 @@ namespace RBS.Controllers
         // GET: Department/Edit/5
         public ActionResult Edit(int? id)
         {
-            if (id == null)
+            if (context.IsAdmin)
             {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+                if (id == null)
+                {
+                    return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+                }
+                DepartmentModel departmentModel = db.Departments.Find(id);
+                if (departmentModel == null)
+                {
+                    return HttpNotFound();
+                }
+                return View(departmentModel);
             }
-            DepartmentModel departmentModel = db.Departments.Find(id);
-            if (departmentModel == null)
+            else
             {
-                return HttpNotFound();
+                return RedirectToAction("Error", "Home");
             }
-            return View(departmentModel);
         }
 
         // POST: Department/Edit/5
@@ -123,16 +151,23 @@ namespace RBS.Controllers
         // GET: Department/Delete/5
         public ActionResult Delete(int? id)
         {
-            if (id == null)
+            if (context.IsAdmin)
             {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+                if (id == null)
+                {
+                    return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+                }
+                DepartmentModel departmentModel = db.Departments.Find(id);
+                if (departmentModel == null)
+                {
+                    return HttpNotFound();
+                }
+                return View(departmentModel);
             }
-            DepartmentModel departmentModel = db.Departments.Find(id);
-            if (departmentModel == null)
+            else
             {
-                return HttpNotFound();
+                return RedirectToAction("Error", "Home");
             }
-            return View(departmentModel);
         }
 
         // POST: Department/Delete/5

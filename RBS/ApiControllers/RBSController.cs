@@ -650,7 +650,8 @@ namespace RBS.ApiControllers
                     {
                         if (recurenceType == 0)
                         {
-                            string tempQuery = "SELECT * FROM dbo.MeetingModel WHERE RoomID = " + Convert.ToInt32(roomId) + " AND BookingDate='" + bookingDate + " 00:00:00'" + " AND (" + sqlStart + " between StartingTime and EndingTime OR " + sqlEnd + " between StartingTime and EndingTime)";
+                            // Exclude the meeting time itself
+                            string tempQuery = "SELECT * FROM dbo.MeetingModel WHERE ID <> " + Convert.ToInt32(meetingId) + " AND RoomID = " + Convert.ToInt32(roomId) + " AND BookingDate='" + bookingDate + " 00:00:00'" + " AND (" + sqlStart + " between StartingTime and EndingTime OR " + sqlEnd + " between StartingTime and EndingTime)";
 
                             // Checking whether this timeslot if booked
                             var bookedMeeting = db.Meetings.SqlQuery(tempQuery).ToList();
@@ -714,7 +715,8 @@ namespace RBS.ApiControllers
                             int checkavalilable = 0;
                             foreach (var date in dates)
                             {
-                                string tempQuery = "SELECT * FROM dbo.MeetingModel WHERE RoomID = " + Convert.ToInt32(roomId) + " AND BookingDate='" + bookingDate + " 00:00:00'" + " AND (" + sqlStart + " between StartingTime and EndingTime OR " + sqlEnd + " between StartingTime and EndingTime)";
+                                // Exclude the meeting time itself
+                                string tempQuery = "SELECT * FROM dbo.MeetingModel WHERE ID <> " + Convert.ToInt32(meetingId) + " AND RoomID = " + Convert.ToInt32(roomId) + " AND BookingDate='" + bookingDate + " 00:00:00'" + " AND (" + sqlStart + " between StartingTime and EndingTime OR " + sqlEnd + " between StartingTime and EndingTime)";
 
                                 // Checking whether this timeslot if booked
                                 var bookedMeeting = db.Meetings.SqlQuery(tempQuery).ToList();

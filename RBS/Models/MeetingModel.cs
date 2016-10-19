@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
@@ -15,14 +16,14 @@ namespace RBS.Models
 
         // Main fields
         [Required]
-        [DisplayName("Title of Meeting")]
+        [DisplayName("Title")]
         [StringLength(100)]
         public string Title { get; set; }
 
         [StringLength(500)]
         public string Purpose { get; set; }
 
-        [DisplayName("Booking Date")]
+        [DisplayName("Date")]
         [DataType(DataType.Date)]
         [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true)]
         public DateTime? BookingDate { get; set; }
@@ -47,6 +48,7 @@ namespace RBS.Models
 
         // Navigation properties
         public virtual RoomModel Room { get; set; }
+        public virtual IList<ParticipantModel> Participants { get; set; }
 
         //recurrency setting
         [DisplayName("Recurrence")]
