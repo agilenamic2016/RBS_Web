@@ -29,10 +29,7 @@ namespace RBS.Controllers
             }
             else
             {
-                if (context.IsAdmin)
-                    return RedirectToAction("Index", "User");
-                else
-                    return RedirectToAction("Index", "Room");
+                return RedirectToAction("Index", "Meeting");
             }
         }
 
@@ -52,10 +49,7 @@ namespace RBS.Controllers
                 }
                 else
                 {
-                    if (context.IsAdmin)
-                        return RedirectToAction("Index", "User");
-                    else
-                        return RedirectToAction("Index", "Meeting");
+                    return RedirectToAction("Index", "Meeting");
                 }
             }
             else
@@ -414,8 +408,6 @@ namespace RBS.Controllers
                 {
                     ViewBag.ErrorMessage = context.STR_ERROR_MSG_LOGIN_FAIL;
                 }
-
-                Log.Info(context.UserID, context.STR_USER, context.STR_LOGIN);
             }
             else
             {

@@ -6,7 +6,7 @@
     ViewBag.Title = "Index";
 }
 
-<h2>Meetings</h2>
+<h2>Upcoming Meetings</h2>
 <br />
 
     @using (Html.BeginForm("Upcoming", "Meeting", FormMethod.Get))
@@ -25,11 +25,11 @@
         </div>
     }
 
-    <div class="col-md-6">
+    @*<div class="col-md-6">
         <div class="pull-right">
             <a class="link_button" href="@Url.Action("Create")"><i class="action_icon glyphicon glyphicon-plus"></i>&nbsp;&nbsp;New Meeting</a>
         </div>
-    </div>
+    </div>*@
     <div class="clearfix"></div>
     <br />
 
@@ -73,9 +73,9 @@
                 </td>
                 <td>
                     <div class="action_button_group pull-right">
-                        <a class="link_button first_button" href="@Url.Action("Edit", new { id = item.ID })"><i class="action_icon glyphicon glyphicon-pencil"></i>&nbsp;&nbsp;Edit</a>
-                        <a class="link_button mid_button" href="@Url.Action("Details", new { id = item.ID })"><i class="action_icon glyphicon glyphicon-eye-open"></i>&nbsp;&nbsp;Details</a>
-                        <a class="link_button last_button red_hover" href="@Url.Action("Delete", new { id = item.ID })"><i class="action_icon glyphicon glyphicon-trash"></i>&nbsp;&nbsp;Delete</a>
+                        @*<a class="link_button first_button" href="@Url.Action("Edit", new { id = item.ID })"><i class="action_icon glyphicon glyphicon-pencil"></i>&nbsp;&nbsp;Edit</a>*@
+                        <a class="link_button mid_button" href="@Url.Action("UpcomingDetails", new { id = item.ID })"><i class="action_icon glyphicon glyphicon-eye-open"></i>&nbsp;&nbsp;Details</a>
+                        @*<a class="link_button last_button red_hover" href="@Url.Action("Delete", new { id = item.ID })"><i class="action_icon glyphicon glyphicon-trash"></i>&nbsp;&nbsp;Delete</a>*@
                     </div>
                 </td>
             </tr>

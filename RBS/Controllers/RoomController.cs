@@ -294,11 +294,15 @@ namespace RBS.Controllers
                 {
                     return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
                 }
+
                 RoomModel roomModel = db.Rooms.Find(id);
+                
                 if (roomModel == null)
                 {
                     return HttpNotFound();
                 }
+
+                ViewBag.path = Path.Combine(ConfigurationManager.AppSettings["PhotoPath"].ToString(), roomModel.PhotoFileName);
                 return View(roomModel);
             }
             else

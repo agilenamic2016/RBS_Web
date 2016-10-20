@@ -285,6 +285,7 @@
     <Content Include="Views\Meeting\Edit.cshtml" />
     <Content Include="Views\Meeting\Index.cshtml" />
     <Content Include="Views\Meeting\Upcoming.cshtml" />
+    <Content Include="Views\Meeting\UpcomingDetails.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

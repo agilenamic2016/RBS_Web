@@ -7,6 +7,7 @@ using RBS.Library;
 using RBS.Models;
 using System;
 using PagedList;
+using System.Collections.Generic;
 
 namespace RBS.Controllers
 {
@@ -22,6 +23,10 @@ namespace RBS.Controllers
             var todayDate = DateTime.Today;
             var meetings = db.Meetings.Include(p => p.Participants).Include(r => r.Room)
                                       .Where(b => b.BookingDate >= todayDate);
+
+            // Normal user only able to view the meeting list that created by him
+            if (!context.IsAdmin)
+                meetings = meetings.Where(e => e.CreatedBy.Equals(context.UserID));
 
             if (searchTerm != null)
             {
@@ -53,8 +58,9 @@ namespace RBS.Controllers
             ViewBag.SearchTerm = searchTerm;
 
             var todayDate = DateTime.Today;
-            var meetings = db.Meetings.Include(p => p.Participants).Include(r => r.Room)
-                                      .Where(b => b.BookingDate >= todayDate);
+            string tempQuery = "SELECT A.* FROM MeetingModel A INNER JOIN ParticipantModel B on A.ID = B.MeetingID INNER JOIN UserModel C on B.UserID = C.ID WHERE C.Username = '" + context.UserID + "' AND BookingDate >= '" + todayDate + "'";
+
+            var meetings = db.Meetings.SqlQuery(tempQuery).ToList().AsQueryable();
 
             if (searchTerm != null)
             {
@@ -87,7 +93,35 @@ namespace RBS.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
+
             MeetingModel meetingModel = db.Meetings.Find(id);
+
+            // Assign the list of participant and display
+            IList<ParticipantModel> participantList = db.Participants.Where(u => u.MeetingID == id).ToList();
+            if (participantList.Count > 0)
+                meetingModel.Participants = participantList;
+
+            if (meetingModel == null)
+            {
+                return HttpNotFound();
+            }
+            return View(meetingModel);
+        }
+
+        // GET: Meeting/UpcomingDetails/5
+        public ActionResult UpcomingDetails(int? id)
+        {
+            if (id == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+            MeetingModel meetingModel = db.Meetings.Find(id);
+
+            // Assign the list of participant and display
+            IList<ParticipantModel> participantList = db.Participants.Where(u => u.MeetingID == id).ToList();
+            if (participantList.Count > 0)
+                meetingModel.Participants = participantList;
+
             if (meetingModel == null)
             {
                 return HttpNotFound();

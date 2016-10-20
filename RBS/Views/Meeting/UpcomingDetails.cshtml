@@ -8,8 +8,7 @@
 <br />
 
 <div class="link_button_group">
-    <a class="link_button first_button" onclick="window.history.back();"><i class="action_icon glyphicon glyphicon-arrow-left"></i>&nbsp;&nbsp;Back to List</a>
-    <a class="link_button last_button" href="@Url.Action("Edit", new { id = Model.ID })"><i class="action_icon glyphicon glyphicon-pencil"></i>&nbsp;&nbsp;Edit</a>
+    <a class="link_button" onclick="window.history.back();"><i class="action_icon glyphicon glyphicon-arrow-left"></i>&nbsp;&nbsp;Back to List</a>
 </div>
 
 <div class="clearfix"></div>
@@ -112,15 +111,15 @@
 
             if (counter % 2 == 1)
             {
-                    <div class="col-md-6">
-                        @attendee.User.Name
-                    </div>
+                <div class="col-md-6">
+                    @attendee.User.Name
+                </div>
             }
             else
             {
-                    <div class="col-md-6">
-                        @attendee.User.Name
-                    </div>
+                <div class="col-md-6">
+                    @attendee.User.Name
+                </div>
             }
         }
     }
