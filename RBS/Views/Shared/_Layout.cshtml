@@ -20,12 +20,28 @@
             </div>
             
             <div class="navbar-collapse collapse">
-                @if (HttpContext.Current.Session["IsAuthenticated"] != null && HttpContext.Current.Session["IsAuthenticated"].ToString().ToLower().Equals("true"))
+                @if (HttpContext.Current.Session["IsAuthenticated"] != null && HttpContext.Current.Session["IsAuthenticated"].ToString().ToLower().Equals("true")
+                    && Convert.ToBoolean(HttpContext.Current.Session["IsAdmin"]))
                 {
                     <ul class="nav navbar-nav">
                         <li>@Html.ActionLink("Department", "Index", "Department")</li>
+                        <li>@Html.ActionLink("My Meeting", "Index", "Meeting")</li>
+                        <li>@Html.ActionLink("Upcoming Meeting", "Upcoming", "Meeting")</li>
                         <li>@Html.ActionLink("Room", "Index", "Room")</li>
                         <li>@Html.ActionLink("User", "Index", "User")</li>
+                        <li>@Html.ActionLink("Change Password", "ChangePassword", "User")</li>
+                    </ul>
+
+                    <ul class="nav navbar-nav pull-right">
+                        <li><a data-placement="bottom" data-toggle="tooltip" href="~/User/Logout" title="" data-original-title="Click to log out">Logged in as <u>@HttpContext.Current.Session["UserID"].ToString()</u></a></li>
+                    </ul>
+                }
+                else if (HttpContext.Current.Session["IsAuthenticated"] != null && HttpContext.Current.Session["IsAuthenticated"].ToString().ToLower().Equals("true")
+                    && !Convert.ToBoolean(HttpContext.Current.Session["IsAdmin"]))
+                {
+                    <ul class="nav navbar-nav">
+                        <li>@Html.ActionLink("My Meeting", "Index", "Meeting")</li>
+                        <li>@Html.ActionLink("Upcoming Meeting", "Upcoming", "Meeting")</li>
                         <li>@Html.ActionLink("Change Password", "ChangePassword", "User")</li>
                     </ul>
 

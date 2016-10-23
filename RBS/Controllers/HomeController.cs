@@ -13,5 +13,10 @@ namespace RBS.Controllers
         {
             return RedirectToAction("Login", "User");
         }
+
+        public ActionResult Error()
+        {
+            return View();
+        }
     }
 }

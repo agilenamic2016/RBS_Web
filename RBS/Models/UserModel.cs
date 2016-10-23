@@ -21,7 +21,7 @@ namespace RBS.Models
         public string Username { get; set; }
 
         [Required]
-        [StringLength(100), RegularExpression(@"^[a-zA-Z]'?([a-zA-Z]|\.|-)+$", ErrorMessage = "We think that name should not have any special characters")]
+        [StringLength(100), RegularExpression(@"^[a-zA-Z_ \.]*$", ErrorMessage = "We think that name should not have any special characters")]
         public string Name { get; set; }
 
         [StringLength(128, MinimumLength = 8, ErrorMessage = "We personally think that password longer than 8 characters is more secure")]

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
 namespace RBS.ViewModels
@@ -6,6 +7,7 @@ namespace RBS.ViewModels
     public class UserViewModel
     {
         [Required]
+        [DisplayName("Email")]
         [StringLength(100)]
         public string Username { get; set; }
 

@@ -28,6 +28,14 @@
         </div>
 
         <div class="form-group">
+            @Html.LabelFor(model => model.Remark, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.TextAreaFor(model => model.Remark, new { @class = "form-control" })
+                @Html.ValidationMessageFor(model => model.Name, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
             <label class="control-label col-md-2">Select Photo</label>
             <div class="col-md-10">
                 <input id="file-0a" class="file" type="file" name="file" multiple data-max-file-count="1">

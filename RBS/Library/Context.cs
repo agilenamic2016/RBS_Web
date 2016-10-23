@@ -12,10 +12,10 @@ namespace RBS.Library
                
         public readonly string SYSTEM_ID = "System";
         public readonly int ITERATION = 1000;
-        public readonly string STR_ERROR_MSG_LOGIN_FAIL = "Login failed. Either username or password is incorrect.";
+        public readonly string STR_ERROR_MSG_LOGIN_FAIL = "Login failed. Either email or password is incorrect.";
         public readonly string STR_ERROR_MSG_PASSWORD_POLICY = "Password should contain at least 8 digits";
         public readonly string STR_ERROR_MSG_PASSWORD_WRONG = "Current password is incorrect.";
-        public readonly string STR_ERROR_MSG_USERNAME_DUPLICATE = "Entered username has been used.";
+        public readonly string STR_ERROR_MSG_USERNAME_DUPLICATE = "Entered email has been used.";
         public readonly string STR_ERROR_MSG_MEETINGROOM_DUPLICATE = "Entered meeting room has been used.";
         public readonly string STR_SETTING = "Setting";
 

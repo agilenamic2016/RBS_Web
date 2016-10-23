@@ -20,54 +20,75 @@ namespace RBS.Controllers
         // GET: Room
         public ActionResult Index(string searchTerm, int? page, string currentFilter)
         {
-            ViewBag.SearchTerm = searchTerm;
+            if (context.IsAdmin)
+            { 
+                ViewBag.SearchTerm = searchTerm;
 
-            IQueryable<RoomModel> rooms = db.Rooms;
+                IQueryable<RoomModel> rooms = db.Rooms;
 
-            if (searchTerm != null)
-            {
-                page = 1;
+                if (searchTerm != null)
+                {
+                    page = 1;
+                }
+                else
+                {
+                    searchTerm = currentFilter;
+                }
+
+                ViewBag.CurrentFilter = searchTerm;
+
+                if (!String.IsNullOrEmpty(searchTerm))
+                {
+                    rooms = rooms.Where(s => s.Name.Contains(searchTerm));
+                }
+
+                rooms = rooms.OrderBy(s => s.Name);
+                int pageSize = Config.PageSize;
+                int pageNumber = (page ?? 1);
+
+                return View(rooms.ToPagedList(pageNumber, pageSize));
             }
             else
             {
-                searchTerm = currentFilter;
+                return RedirectToAction("Error", "Home");
             }
-
-            ViewBag.CurrentFilter = searchTerm;
-
-            if (!String.IsNullOrEmpty(searchTerm))
-            {
-                rooms = rooms.Where(s => s.Name.Contains(searchTerm));
-            }
-
-            rooms = rooms.OrderBy(s => s.Name);
-            int pageSize = Config.PageSize;
-            int pageNumber = (page ?? 1);
-
-            return View(rooms.ToPagedList(pageNumber, pageSize));
         }
 
         // GET: Room/Details/5
         public ActionResult Details(int? id)
         {
-            if (id == null)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-            }
-            RoomModel roomModel = db.Rooms.Find(id);
-            if (roomModel == null)
-            {
-                return HttpNotFound();
-            }
+            if (context.IsAdmin)
+            { 
+                if (id == null)
+                {
+                    return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+                }
+                RoomModel roomModel = db.Rooms.Find(id);
+                if (roomModel == null)
+                {
+                    return HttpNotFound();
+                }
 
-            ViewBag.path = Path.Combine(ConfigurationManager.AppSettings["PhotoPath"].ToString(), roomModel.PhotoFileName);
-            return View(roomModel);
+                ViewBag.path = Path.Combine(ConfigurationManager.AppSettings["PhotoPath"].ToString(), roomModel.PhotoFileName);
+                return View(roomModel);
+            }
+            else
+            {
+                return RedirectToAction("Error", "Home");
+            }
         }
 
         // GET: Room/Create
         public ActionResult Create()
         {
-            return View();
+            if (context.IsAdmin)
+            {
+                return View();
+            }
+            else
+            {
+                return RedirectToAction("Error", "Home");
+            }
         }
 
         // POST: Room/Create
@@ -75,7 +96,7 @@ namespace RBS.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create([Bind(Include = "ID,Name,CreatedBy,CreatedDate,UpdatedBy,UpdatedDate")] RoomModel roomModel, HttpPostedFileBase file)
+        public ActionResult Create([Bind(Include = "ID,Name,Remark,CreatedBy,CreatedDate,UpdatedBy,UpdatedDate")] RoomModel roomModel, HttpPostedFileBase file)
         {
             if (ModelState.IsValid)
             {
@@ -134,18 +155,25 @@ namespace RBS.Controllers
         // GET: Room/Edit/5
         public ActionResult Edit(int? id)
         {
-            if (id == null)
+            if (context.IsAdmin)
             {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-            }
-            RoomModel roomModel = db.Rooms.Find(id);
-            if (roomModel == null)
-            {
-                return HttpNotFound();
-            }
+                if (id == null)
+                {
+                    return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+                }
+                RoomModel roomModel = db.Rooms.Find(id);
+                if (roomModel == null)
+                {
+                    return HttpNotFound();
+                }
 
-            ViewBag.path = Path.Combine(ConfigurationManager.AppSettings["PhotoPath"].ToString(), roomModel.PhotoFileName);
-            return View(roomModel);
+                ViewBag.path = Path.Combine(ConfigurationManager.AppSettings["PhotoPath"].ToString(), roomModel.PhotoFileName);
+                return View(roomModel);
+            }
+            else
+            {
+                return RedirectToAction("Error", "Home");
+            }
         }
 
         // POST: Room/Edit/5
@@ -153,7 +181,7 @@ namespace RBS.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit([Bind(Include = "ID,Name,PhotoFilePath,PhotoFileName,CreatedBy,CreatedDate,UpdatedBy,UpdatedDate")] RoomModel roomModel, HttpPostedFileBase file)
+        public ActionResult Edit([Bind(Include = "ID,Name,Remark,PhotoFilePath,PhotoFileName,CreatedBy,CreatedDate,UpdatedBy,UpdatedDate")] RoomModel roomModel, HttpPostedFileBase file)
         {
             string errorMsg = string.Empty;
 
@@ -196,10 +224,12 @@ namespace RBS.Controllers
 
                 if (errorMsg.Length == 0)
                 {
-                    // Prevent duplicate name
-                    RoomModel room = (from s in db.Rooms where s.Name.Equals(roomModel.Name) select s).FirstOrDefault();
-                    if (room == null)
+                    RoomModel roomToCompare = (from s in db.Rooms where s.ID.Equals(roomModel.ID) select s).FirstOrDefault();
+
+                    // If the Meeting Room Name remain unchanged should skip checking below
+                    if (roomToCompare.Name.ToLower().Equals(roomModel.Name.ToLower()))
                     {
+                        db.Entry(roomToCompare).State = EntityState.Detached;
                         db.Entry(roomModel).State = EntityState.Modified;
                         db.SaveChanges();
 
@@ -219,7 +249,32 @@ namespace RBS.Controllers
                     }
                     else
                     {
-                        ViewBag.ErrorMessage = context.STR_ERROR_MSG_MEETINGROOM_DUPLICATE;
+                        // Prevent duplicate name
+                        RoomModel room = (from s in db.Rooms where s.Name.Equals(roomModel.Name) select s).FirstOrDefault();
+                        if (room == null)
+                        {
+                            db.Entry(roomToCompare).State = EntityState.Detached;
+                            db.Entry(roomModel).State = EntityState.Modified;
+                            db.SaveChanges();
+
+                            // After saving, remove the old photo
+                            if (file != null && file.ContentLength > 0)
+                            {
+                                string oldpath = Server.MapPath(ConfigurationManager.AppSettings["PhotoPath"].ToString());
+                                oldpath = Path.Combine(oldpath, oldRoom.PhotoFileName);
+
+                                if (Directory.Exists(oldpath))
+                                {
+                                    System.IO.File.Delete(oldpath);
+                                }
+                            }
+
+                            return RedirectToAction("Index");
+                        }
+                        else
+                        {
+                            ViewBag.ErrorMessage = context.STR_ERROR_MSG_MEETINGROOM_DUPLICATE;
+                        }
                     }
                 }
             }
@@ -233,16 +288,27 @@ namespace RBS.Controllers
         // GET: Room/Delete/5
         public ActionResult Delete(int? id)
         {
-            if (id == null)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            if (context.IsAdmin)
+            { 
+                if (id == null)
+                {
+                    return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+                }
+
+                RoomModel roomModel = db.Rooms.Find(id);
+                
+                if (roomModel == null)
+                {
+                    return HttpNotFound();
+                }
+
+                ViewBag.path = Path.Combine(ConfigurationManager.AppSettings["PhotoPath"].ToString(), roomModel.PhotoFileName);
+                return View(roomModel);
             }
-            RoomModel roomModel = db.Rooms.Find(id);
-            if (roomModel == null)
+            else
             {
-                return HttpNotFound();
+                return RedirectToAction("Error", "Home");
             }
-            return View(roomModel);
         }
 
         // POST: Room/Delete/5

@@ -1,0 +1,16 @@
+﻿@{
+    ViewBag.Title = "Error Page";
+}
+
+<div class="jumbotron">
+
+    @if (TempData["Message"] != null)
+    {
+        <p class="lead">@TempData["Message"].ToString()</p>
+    }
+    else
+    {
+        <p class="lead">You have not access to the requested page. Please check with you administrator.</p>
+    }
+
+</div>
