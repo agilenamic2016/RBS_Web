@@ -58,7 +58,9 @@ namespace RBS.Controllers
             ViewBag.SearchTerm = searchTerm;
 
             var todayDate = DateTime.Today;
-            string tempQuery = "SELECT A.* FROM MeetingModel A INNER JOIN ParticipantModel B on A.ID = B.MeetingID INNER JOIN UserModel C on B.UserID = C.ID WHERE C.Username = '" + context.UserID + "' AND BookingDate >= '" + todayDate + "'";
+            var startingTime = MilitaryTime.ChangeToMilitaryTime(DateTime.Now);
+            string tempQuery = "SELECT A.* FROM MeetingModel A INNER JOIN ParticipantModel B on A.ID = B.MeetingID INNER JOIN UserModel C on B.UserID = C.ID "
+                             + "WHERE C.Username = '" + context.UserID + "' AND BookingDate >= '" + todayDate + "' AND StartingTime >= '" + startingTime + "'";
 
             var meetings = db.Meetings.SqlQuery(tempQuery).ToList().AsQueryable();
 
