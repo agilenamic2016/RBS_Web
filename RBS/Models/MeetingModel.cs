@@ -28,11 +28,9 @@ namespace RBS.Models
         [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true)]
         public DateTime? BookingDate { get; set; }
 
-        [StringLength(4)]
         [DisplayName("Starting Time")]
         public string StartingTime { get; set; }
 
-        [StringLength(4)]
         [DisplayName("Ending Time")]
         public string EndingTime { get; set; }
 
@@ -54,9 +52,9 @@ namespace RBS.Models
         [DisplayName("Recurrence")]
         public int RecurenceType { get; set; }
         [StringLength (10)]
-        [DisplayName("Recurrence start date")]
+        [DisplayName("Recurrence Start Date")]
         public string SCCStartDate { get; set; }
-        [DisplayName("Recurrence end date")]
+        [DisplayName("Recurrence End Date")]
         [StringLength(10)]
         public string SCCEndDate { get; set; }
     }

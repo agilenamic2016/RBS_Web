@@ -8,6 +8,13 @@ using RBS.Models;
 using System;
 using PagedList;
 using System.Collections.Generic;
+using RBS.Notification;
+using System.Web.Hosting;
+using System.Net.Mail;
+using System.Configuration;
+using System.IO;
+using System.Web.UI.WebControls;
+using System.Globalization;
 
 namespace RBS.Controllers
 {
@@ -135,6 +142,8 @@ namespace RBS.Controllers
         public ActionResult Create()
         {
             ViewBag.RoomID = new SelectList(db.Rooms, "ID", "Name");
+            ViewBag.RecurenceType = GetOccurrenceRate(null);
+
             return View();
         }
 
@@ -145,14 +154,130 @@ namespace RBS.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Create([Bind(Include = "ID,RoomID,Title,Purpose,BookingDate,StartingTime,EndingTime,CreatedBy,CreatedDate,UpdatedBy,UpdatedDate,RecurenceType,SCCStartDate,SCCEndDate")] MeetingModel meetingModel)
         {
+            // Convert the Starting time and Ending time to String (4 Char)
+            string strStart = string.Empty;
+            string strEnd = string.Empty;
+
+            strStart = MilitaryTime.ChangeToMilitaryTime(DateTime.Parse(meetingModel.StartingTime));
+            strEnd = MilitaryTime.ChangeToMilitaryTime(DateTime.Parse(meetingModel.EndingTime));
+
+            meetingModel.StartingTime = strStart;
+            meetingModel.EndingTime = strEnd;
+
+            string sqlStart = (Convert.ToInt32(strStart) + 1).ToString(); // + 1 to staring time in order to perform between condition 
+            string sqlEnd = (Convert.ToInt32(strEnd) - 1).ToString();     // - 1 to staring time in order to perform between condition 
+
             if (ModelState.IsValid)
             {
-                db.Meetings.Add(meetingModel);
-                db.SaveChanges();
-                return RedirectToAction("Index");
+                if (meetingModel.RecurenceType == 0)
+                {
+                    string tempQuery = "SELECT * FROM dbo.MeetingModel WHERE RoomID = " + meetingModel.RoomID + " AND BookingDate='" + meetingModel.BookingDate + "' AND (" + sqlStart + " between StartingTime and EndingTime OR " + sqlEnd + " between StartingTime and EndingTime)";
+
+                    // Checking whether this timeslot if booked
+                    var bookedMeeting = db.Meetings.SqlQuery(tempQuery).ToList();
+
+                    if (bookedMeeting.Count == 0)
+                    {
+                        MeetingModel meeting = new MeetingModel();
+                        meeting.RoomID = meetingModel.RoomID;
+                        meeting.Title = meetingModel.Title;
+                        meeting.Purpose = meetingModel.Purpose;
+                        meeting.BookingDate = meetingModel.BookingDate;
+                        meeting.StartingTime = meetingModel.StartingTime;
+                        meeting.EndingTime = meetingModel.EndingTime;
+                        meeting.RecurenceType = meetingModel.RecurenceType;
+                        meeting.SCCStartDate = meetingModel.SCCStartDate;
+                        meeting.SCCEndDate = meetingModel.SCCEndDate;
+                        meeting.CreatedBy = context.UserID;
+                        meeting.CreatedDate = DateTime.Now;
+
+                        if (ModelState.IsValid)
+                        {
+                            db.Meetings.Add(meeting);
+                            db.SaveChanges();
+
+                            return RedirectToAction("Index");
+                        }
+                    }
+                    else
+                    {
+                        UserModel user = db.Users.Where(u => u.Username.Equals(meetingModel.CreatedBy)).SingleOrDefault();
+
+                        if (user != null)
+                            ViewBag.ErrorMessage = "This time slot had been booked by " + user.Name + " on " + meetingModel.BookingDate.Value.ToString("yyyy-MM-dd") + " at " + meetingModel.StartingTime + " to " + meetingModel.EndingTime;
+                        else
+                            ViewBag.ErrorMessage = "The selected time slot had been booked";
+                    }
+                }
+                else
+                {
+                    List<DateTime> dates = new List<DateTime>();
+                    DateTime newStartDate = meetingModel.BookingDate.Value;
+                    DateTime newEndDate = DateTime.ParseExact(meetingModel.SCCEndDate, "yyyy-MM-dd", CultureInfo.InvariantCulture);
+
+                    if (meetingModel.RecurenceType == 1)
+                    {
+                        dates = GetOccurrences(newStartDate, newEndDate, OccurrenceRate.Daily);
+                    }
+                    else if (meetingModel.RecurenceType == 2)
+                    {
+                        dates = GetOccurrences(newStartDate, newEndDate, OccurrenceRate.Weekly);
+                    }
+                    else if (meetingModel.RecurenceType == 3)
+                    {
+                        dates = GetOccurrences(newStartDate, newEndDate, OccurrenceRate.Monthly);
+                    }
+
+                    int checkavalilable = 0;
+                    foreach (var date in dates)
+                    {
+                        string tempQuery = "SELECT * FROM dbo.MeetingModel WHERE RoomID = " + meetingModel.RoomID + " AND BookingDate='" + meetingModel.BookingDate + "' AND (" + sqlStart + " between StartingTime and EndingTime OR " + sqlEnd + " between StartingTime and EndingTime)";
+
+                        // Checking whether this timeslot if booked
+                        var bookedMeeting = db.Meetings.SqlQuery(tempQuery).ToList();
+
+                        if (bookedMeeting.Count > 0)
+                        {
+                            checkavalilable++;
+                        }
+                    }
+
+                    if (checkavalilable == 0)
+                    {
+                        foreach (var date in dates)
+                        {
+                            MeetingModel meeting = new MeetingModel();
+                            meeting.RoomID = meetingModel.RoomID;
+                            meeting.Title = meetingModel.Title;
+                            meeting.Purpose = meetingModel.Purpose;
+                            meeting.BookingDate = DateTime.ParseExact(date.ToString("yyyy-MM-dd"), "yyyy-MM-dd", CultureInfo.InvariantCulture);
+                            meeting.StartingTime = meetingModel.StartingTime;
+                            meeting.EndingTime = meetingModel.EndingTime;
+                            meeting.RecurenceType = meetingModel.RecurenceType;
+                            meeting.SCCStartDate = meetingModel.SCCStartDate;
+                            meeting.SCCEndDate = meetingModel.SCCEndDate;
+                            meeting.CreatedBy = context.UserID;
+                            meeting.CreatedDate = DateTime.Now;
+
+                            if (ModelState.IsValid)
+                            {
+                                db.Meetings.Add(meeting);
+                                db.SaveChanges();
+                            }
+                        }
+
+                        return RedirectToAction("Index");
+                    }
+                    else
+                    {
+                        ViewBag.ErrorMessage = "The selected time slot had been booked";
+                    }
+                }
             }
 
             ViewBag.RoomID = new SelectList(db.Rooms, "ID", "Name", meetingModel.RoomID);
+            ViewBag.RecurenceType = GetOccurrenceRate(meetingModel.RecurenceType);
+
             return View(meetingModel);
         }
 
@@ -179,13 +304,65 @@ namespace RBS.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Edit([Bind(Include = "ID,RoomID,Title,Purpose,BookingDate,StartingTime,EndingTime,CreatedBy,CreatedDate,UpdatedBy,UpdatedDate,RecurenceType,SCCStartDate,SCCEndDate")] MeetingModel meetingModel)
         {
+            // Convert the Starting time and Ending time to String (4 Char)
+            string strStart = string.Empty;
+            string strEnd = string.Empty;
+
+            strStart = MilitaryTime.ChangeToMilitaryTime(DateTime.Parse(meetingModel.StartingTime));
+            strEnd = MilitaryTime.ChangeToMilitaryTime(DateTime.Parse(meetingModel.EndingTime));
+
+            meetingModel.StartingTime = strStart;
+            meetingModel.EndingTime = strEnd;
+
+            string sqlStart = (Convert.ToInt32(strStart) + 1).ToString(); // + 1 to staring time in order to perform between condition 
+            string sqlEnd = (Convert.ToInt32(strEnd) - 1).ToString();     // - 1 to staring time in order to perform between condition 
+
             if (ModelState.IsValid)
             {
-                db.Entry(meetingModel).State = EntityState.Modified;
-                db.SaveChanges();
-                return RedirectToAction("Index");
+                string tempQuery = "SELECT * FROM dbo.MeetingModel WHERE ID <> " + meetingModel.ID + " AND RoomID = " + meetingModel.RoomID + " AND BookingDate='" + meetingModel.BookingDate + "' AND (" + sqlStart + " between StartingTime and EndingTime OR " + sqlEnd + " between StartingTime and EndingTime)";
+
+                // Checking whether this timeslot if booked
+                var bookedMeeting = db.Meetings.SqlQuery(tempQuery).ToList();
+
+                if (bookedMeeting.Count == 0)
+                {
+                    MeetingModel meeting = new MeetingModel();
+                    meeting.ID = meetingModel.ID;
+                    meeting.RoomID = meetingModel.RoomID;
+                    meeting.Title = meetingModel.Title;
+                    meeting.Purpose = meetingModel.Purpose;
+                    meeting.BookingDate = meetingModel.BookingDate;
+                    meeting.StartingTime = meetingModel.StartingTime;
+                    meeting.EndingTime = meetingModel.EndingTime;
+                    meeting.RecurenceType = meetingModel.RecurenceType;
+                    meeting.SCCStartDate = meetingModel.SCCStartDate;
+                    meeting.SCCEndDate = meetingModel.SCCEndDate;
+                    meeting.CreatedBy = meetingModel.CreatedBy;
+                    meeting.CreatedDate = meetingModel.CreatedDate;
+                    meeting.UpdatedBy = context.UserID;
+                    meeting.UpdatedDate = DateTime.Now;
+
+                    if (ModelState.IsValid)
+                    {
+                        db.Entry(meeting).State = EntityState.Modified;
+                        db.SaveChanges();
+
+                        return RedirectToAction("Index");
+                    }
+                }
+                else
+                {
+                    UserModel user = db.Users.Where(u => u.Username.Equals(meetingModel.CreatedBy)).SingleOrDefault();
+
+                    if (user != null)
+                        ViewBag.ErrorMessage = "This time slot had been booked by " + user.Name + " on " + meetingModel.BookingDate.Value.ToString("yyyy-MM-dd") + " at " + meetingModel.StartingTime + " to " + meetingModel.EndingTime;
+                    else
+                        ViewBag.ErrorMessage = "The selected time slot had been booked";
+                }
             }
+
             ViewBag.RoomID = new SelectList(db.Rooms, "ID", "Name", meetingModel.RoomID);
+
             return View(meetingModel);
         }
 
@@ -197,6 +374,12 @@ namespace RBS.Controllers
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
             MeetingModel meetingModel = db.Meetings.Find(id);
+
+            // Assign the list of participant and display
+            IList<ParticipantModel> participantList = db.Participants.Where(u => u.MeetingID == id).ToList();
+            if (participantList.Count > 0)
+                meetingModel.Participants = participantList;
+
             if (meetingModel == null)
             {
                 return HttpNotFound();
@@ -210,8 +393,21 @@ namespace RBS.Controllers
         public ActionResult DeleteConfirmed(int id)
         {
             MeetingModel meetingModel = db.Meetings.Find(id);
-            db.Meetings.Remove(meetingModel);
-            db.SaveChanges();
+
+            if (meetingModel != null)
+            {
+                // Remove the Attendees for the particular meeting first.
+                using (var context = new RBSContext())
+                {
+                    context.Database.ExecuteSqlCommand("DELETE FROM [ParticipantModel] WHERE MeetingID = " + meetingModel.ID);
+
+                    context.SaveChanges();
+                }
+
+                db.Meetings.Remove(meetingModel);
+                db.SaveChanges();
+            }
+
             return RedirectToAction("Index");
         }
 
@@ -223,5 +419,203 @@ namespace RBS.Controllers
             }
             base.Dispose(disposing);
         }
+
+        #region Methods
+
+        //enum for various patterns
+        //Added here in order to get the standard value for RecurenceType Value, once - 0, Daily - 1, Weekly - 2, Monthly - 3
+        public enum OccurrenceRate
+        {
+            Once,
+            Daily,
+            Weekly,
+            Monthly
+        }
+
+        public static SelectList GetOccurrenceRate(int? occurrenceEnumType)
+        {
+            Array values = Enum.GetValues(typeof(OccurrenceRate));
+            List<ListItem> items = new List<ListItem>(values.Length);
+
+            foreach (var i in values)
+            {
+                items.Add(new ListItem
+                {
+                    Text = Enum.GetName(typeof(OccurrenceRate), i),
+                    Value = ((int)i).ToString()
+                });
+            }
+
+            if (occurrenceEnumType == null)
+                return new SelectList(items, "Value", "Text");
+            else
+                return new SelectList(items, "Value", "Text", occurrenceEnumType.Value);
+        }
+
+        public static List<DateTime> GetOccurrences(DateTime startDate, DateTime endDate, OccurrenceRate rate)
+        {
+            List<DateTime> occurrences = new List<DateTime>();
+
+            var nextDate = startDate;
+
+            while (true)
+            {
+                if (nextDate <= endDate)
+                {
+                    occurrences.Add(nextDate);
+                }
+                else
+                {
+                    break;
+                }
+
+                switch (rate)
+                {
+                    case OccurrenceRate.Weekly:
+                        {
+                            nextDate = nextDate.AddDays(7);
+                            break;
+                        }
+                    case OccurrenceRate.Daily:
+                        {
+                            nextDate = nextDate.AddDays(1);
+                            break;
+                        }
+                    case OccurrenceRate.Monthly:
+                        {
+                            nextDate = nextDate.AddMonths(1);
+                            break;
+                        }
+                }
+            }
+
+            return occurrences;
+        }
+
+        private void CreateEmail(MeetingModel mm, List<string> userList)
+        {
+            try
+            {
+                string location = mm.Room.Name;
+                string title = mm.Title;
+                string purpose = mm.Purpose;
+
+                DateTime startingTime = MilitaryTime.ParseMilitaryTime(mm.StartingTime, mm.BookingDate.Value.Year, mm.BookingDate.Value.Month, mm.BookingDate.Value.Day);
+                DateTime endingTime = MilitaryTime.ParseMilitaryTime(mm.EndingTime, mm.BookingDate.Value.Year, mm.BookingDate.Value.Month, mm.BookingDate.Value.Day);
+
+                //PUTTING THE MEETING DETAILS INTO AN ARRAY OF STRING
+
+                String[] contents = { "BEGIN:VCALENDAR",
+                              "PRODID:-//Flo Inc.//FloSoft//EN",
+                              "BEGIN:VEVENT",
+                              "DTSTART:" + startingTime.ToUniversalTime().ToString("yyyyMMdd\\THHmmss\\Z"),
+                              "DTEND:" + endingTime.ToUniversalTime().ToString("yyyyMMdd\\THHmmss\\Z"),
+                              "LOCATION:" + location,
+                         "DESCRIPTION;ENCODING=QUOTED-PRINTABLE:" + purpose,
+                              "SUMMARY:" + title, "PRIORITY:3",
+                         "END:VEVENT", "END:VCALENDAR" };
+
+                string path = HostingEnvironment.MapPath(ConfigurationManager.AppSettings["EmailPath"].ToString());
+
+                if (!Directory.Exists(path))
+                {
+                    Directory.CreateDirectory(path);
+                }
+
+                string filePath = Path.Combine(path, title + ".ics");
+
+                if (System.IO.File.Exists(filePath))
+                {
+                    System.IO.File.Delete(filePath); // Delete old one
+                }
+
+                FileStream fs = System.IO.File.Create(filePath);
+                fs.Close();
+                System.IO.File.WriteAllLines(filePath, contents);
+
+                //METHOD TO SEND EMAIL IS CALLED
+                SendMail(filePath, userList);
+            }
+            catch (Exception ex)
+            {
+                Log.Error("Mobile App", context.STR_USER, "CreateEmail", ex);
+            }
+
+        }
+
+        private void SendMail(string filePath, List<string> userList)
+        {
+            //CONFIGURE BASIC CONTENTS OF AN EMAIL
+            bool hasValidEmail = false;
+
+            string FromName = "Room Booking System";
+            string FromEmail = HostingEnvironment.MapPath(ConfigurationManager.AppSettings["emailID"].ToString());
+
+            MailMessage mailMessage = new MailMessage();
+
+            // Loop through the participants to add into ToEmail, username = email
+            foreach (var id in userList)
+            {
+                UserModel user = db.Users.Find(Convert.ToInt32(id));
+
+                if (user != null)
+                {
+                    hasValidEmail = true;
+                    mailMessage.To.Add(new MailAddress(user.Username));
+                }
+            }
+
+            // Only Trigger sending email when there is at least one user being added
+            if (hasValidEmail)
+            {
+                string emailPwd = HostingEnvironment.MapPath(ConfigurationManager.AppSettings["emailPwd"].ToString());
+                string smtpServer = HostingEnvironment.MapPath(ConfigurationManager.AppSettings["emailPwd"].ToString());
+                int smtpPort = Convert.ToInt16(HostingEnvironment.MapPath(ConfigurationManager.AppSettings["smtpPort"].ToString()));
+                SmtpClient smtp = new SmtpClient(smtpServer, smtpPort);
+                smtp.Credentials = new System.Net.NetworkCredential(FromEmail, emailPwd);
+                smtp.EnableSsl = true;
+                smtp.DeliveryMethod = SmtpDeliveryMethod.Network;
+
+                mailMessage.From = new MailAddress(FromEmail, FromName);
+                mailMessage.Subject = "Meeting Invitation from RBS";
+                mailMessage.Body = "You have invited to attend a meeting, please take a look in the attachment.";
+
+                //MAKE AN ATTACHMENT OUT OF THE .ICS FILE CREATED
+                Attachment mailAttachment = new Attachment(filePath);
+
+                //ADD THE ATTACHMENT TO THE EMAIL
+                mailMessage.Attachments.Add(mailAttachment);
+                smtp.Send(mailMessage);
+            }
+        }
+
+        private void sendNotification(MeetingModel mm, List<string> userList)
+        {
+            try
+            {
+                string Title = "New Event";
+                string message = mm.Title;
+
+                foreach (var id in userList)
+                {
+                    UserModel user = db.Users.Find(Convert.ToInt32(id));
+
+                    if (user != null)
+                    {
+                        string tokenID = user.TokenID.Trim();
+                        tokenID = tokenID.Replace(" ", "");
+                        BLNotification.PushNotification(tokenID, message, "", Title, "");
+                        Log.Error("Notification", context.STR_USER, "userid= " + id + " token id:" + tokenID + " message:" + message + " Title:" + Title);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error("Notification", context.STR_USER, "sendNotification", ex);
+            }
+        }
+
+        #endregion
+
     }
 }

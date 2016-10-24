@@ -54,8 +54,8 @@ namespace RBS.Migrations
                         Title = c.String(nullable: false, maxLength: 100),
                         Purpose = c.String(maxLength: 500),
                         BookingDate = c.DateTime(),
-                        StartingTime = c.String(maxLength: 4),
-                        EndingTime = c.String(maxLength: 4),
+                        StartingTime = c.String(),
+                        EndingTime = c.String(),
                         CreatedBy = c.String(),
                         CreatedDate = c.DateTime(),
                         UpdatedBy = c.String(),
@@ -67,22 +67,6 @@ namespace RBS.Migrations
                 .PrimaryKey(t => t.ID)
                 .ForeignKey("dbo.RoomModel", t => t.RoomID)
                 .Index(t => t.RoomID);
-            
-            CreateTable(
-                "dbo.RoomModel",
-                c => new
-                    {
-                        ID = c.Int(nullable: false, identity: true),
-                        Name = c.String(nullable: false, maxLength: 100),
-                        PhotoFilePath = c.String(),
-                        PhotoFileName = c.String(maxLength: 100),
-                        Remark = c.String(),
-                        CreatedBy = c.String(),
-                        CreatedDate = c.DateTime(),
-                        UpdatedBy = c.String(),
-                        UpdatedDate = c.DateTime(),
-                    })
-                .PrimaryKey(t => t.ID);
             
             CreateTable(
                 "dbo.ParticipantModel",
@@ -137,6 +121,22 @@ namespace RBS.Migrations
                 .PrimaryKey(t => t.ID);
             
             CreateTable(
+                "dbo.RoomModel",
+                c => new
+                    {
+                        ID = c.Int(nullable: false, identity: true),
+                        Name = c.String(nullable: false, maxLength: 100),
+                        PhotoFilePath = c.String(),
+                        PhotoFileName = c.String(maxLength: 100),
+                        Remark = c.String(),
+                        CreatedBy = c.String(),
+                        CreatedDate = c.DateTime(),
+                        UpdatedBy = c.String(),
+                        UpdatedDate = c.DateTime(),
+                    })
+                .PrimaryKey(t => t.ID);
+            
+            CreateTable(
                 "dbo.SessionModel",
                 c => new
                     {
@@ -157,11 +157,11 @@ namespace RBS.Migrations
         public override void Down()
         {
             DropForeignKey("dbo.SessionModel", "UserID", "dbo.UserModel");
+            DropForeignKey("dbo.MeetingModel", "RoomID", "dbo.RoomModel");
             DropForeignKey("dbo.ParticipantModel", "UserID", "dbo.UserModel");
             DropForeignKey("dbo.UserModel", "RoleID", "dbo.RoleModel");
             DropForeignKey("dbo.UserModel", "DepartmentID", "dbo.DepartmentModel");
             DropForeignKey("dbo.ParticipantModel", "MeetingID", "dbo.MeetingModel");
-            DropForeignKey("dbo.MeetingModel", "RoomID", "dbo.RoomModel");
             DropIndex("dbo.SessionModel", new[] { "UserID" });
             DropIndex("dbo.UserModel", new[] { "DepartmentID" });
             DropIndex("dbo.UserModel", new[] { "RoleID" });
@@ -169,10 +169,10 @@ namespace RBS.Migrations
             DropIndex("dbo.ParticipantModel", new[] { "MeetingID" });
             DropIndex("dbo.MeetingModel", new[] { "RoomID" });
             DropTable("dbo.SessionModel");
+            DropTable("dbo.RoomModel");
             DropTable("dbo.RoleModel");
             DropTable("dbo.UserModel");
             DropTable("dbo.ParticipantModel");
-            DropTable("dbo.RoomModel");
             DropTable("dbo.MeetingModel");
             DropTable("dbo.LogModel");
             DropTable("dbo.DepartmentModel");

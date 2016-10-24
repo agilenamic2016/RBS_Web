@@ -1,18 +1,24 @@
 ﻿@model RBS.Models.MeetingModel
 
 @{
-    ViewBag.Title = "Create";
+    ViewBag.Title = "Create Meeting";
 }
 
+<link href="~/Content/jquery.timepicker.css" rel="stylesheet" />
 <link href="~/Content/fullcalendar/fullcalendar.css" rel="stylesheet" />
 
-@*<h2>Create Meeting</h2>
+<h2>Create Meeting</h2>
 
 
 @using (Html.BeginForm()) 
 {
     @Html.AntiForgeryToken()
-    
+
+    if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
+    {
+        <div class="alert alert-danger" role="alert">@ViewBag.ErrorMessage</div>
+    }
+
     <div class="form-horizontal">
         <hr />
         @Html.ValidationSummary(true, "", new { @class = "text-danger" })
@@ -65,26 +71,63 @@
         </div>
 
         <div class="form-group">
+            @Html.LabelFor(model => model.RecurenceType, "RecurenceType", htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.DropDownList("RecurenceType", null, htmlAttributes: new { @class = "form-control", @onchange = "PopulateSCCEndDate(this.value)" })
+                @Html.ValidationMessageFor(model => model.RecurenceType, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div id="sccEndDateGroup" class="form-group hidden">
+            @Html.LabelFor(model => model.SCCEndDate, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.SCCEndDate, new { htmlAttributes = new { @class = "form-control", @type = "date" } })
+                @Html.ValidationMessageFor(model => model.SCCEndDate, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
             <div class="col-md-offset-2 col-md-10">
-                <input type="submit" value="Create" class="btn btn-default" />
+                <input type="submit" value="Create Meeting" class="btn btn-primary" />&nbsp;&nbsp;@Html.ActionLink("Cancel", "Index")
             </div>
         </div>
     </div>
 }
 
-<div class="clearfix"></div>*@
+<div class="clearfix"></div>
 
-<hr>
+@*<hr>
 <h2>Calendar Session</h2>
 
-<div id='calendar'></div>
+<div id='calendar'></div>*@
 
 
 @section Scripts {
     @Scripts.Render("~/bundles/jqueryval")
 
     <script type="text/javascript">
-        $(document).ready(function () {
+
+        $(function () {
+            $('#StartingTime').timepicker({ 'scrollDefault': '0830' });
+        });
+
+        $(function () {
+            $('#EndingTime').timepicker({ 'scrollDefault': '0830' });
+        });
+
+        function PopulateSCCEndDate(cccurrenceRate) {
+            // Populate the SCCENDDate if rate > 0
+            if (cccurrenceRate > 0) {
+                $("#sccEndDateGroup").removeClass('hidden');
+            }
+            else
+            {
+                $("#sccEndDateGroup").addClass('hidden');
+            }
+        }
+
+        @*$(document).ready(function () {
+            var array = @(Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(@ViewBag.EventList)));
 
             $('#calendar').fullCalendar({
                 header: {
@@ -95,68 +138,8 @@
                 navLinks: true, // can click day/week names to navigate views
                 editable: true,
                 eventLimit: true, // allow "more" link when too many events
-                events: [
-                    {
-                        title: 'All Day Event',
-                        start: '2016-09-01'
-                    },
-                    {
-                        title: 'Long Event',
-                        start: '2016-09-07',
-                        end: '2016-09-10'
-                    },
-                    {
-                        id: 999,
-                        title: 'Repeating Event',
-                        start: '2016-09-09T16:00:00'
-                    },
-                    {
-                        id: 999,
-                        title: 'Repeating Event',
-                        start: '2016-09-16T16:00:00'
-                    },
-                    {
-                        title: 'Conference',
-                        start: '2016-09-11',
-                        end: '2016-09-13'
-                    },
-                    {
-                        title: 'Meeting',
-                        start: '2016-09-12T10:30:00',
-                        end: '2016-09-12T12:30:00'
-                    },
-                    {
-                        title: 'Lunch',
-                        start: '2016-09-12T12:00:00'
-                    },
-                    {
-                        title: 'Meeting',
-                        start: '2016-09-12T14:30:00'
-                    },
-                    {
-                        title: 'Happy Hour',
-                        start: '2016-09-12T17:30:00'
-                    },
-                    {
-                        title: 'Dinner',
-                        start: '2016-09-12T20:00:00'
-                    },
-                    {
-                        title: 'Birthday Party',
-                        start: '2016-09-13T07:00:00'
-                    },
-                    {
-                        title: 'Click for Google',
-                        url: 'http://google.com/',
-                        start: '2016-09-28'
-                    }
-                ]
+                events: null
             });
-
-        });
-    </script> 
-
-    <style type="text/css">
-	
-    </style>
+        });*@
+    </script>
 }

@@ -837,10 +837,12 @@ namespace RBS.ApiControllers
         #region Methods
 
         //enum for various patterns
+        //Added here in order to get the standard value for RecurenceType Value, once - 0, Daily - 1, Weekly - 2, Monthly - 3
         public enum OccurrenceRate
         {
-            Weekly,
+            Once,
             Daily,
+            Weekly,
             Monthly
         }
 

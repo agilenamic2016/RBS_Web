@@ -10,6 +10,7 @@ namespace RBS
         {
             bundles.Add(new ScriptBundle("~/bundles/jquery").Include(
                         "~/Scripts/jquery-{version}.js",
+                        "~/Scripts/jquery.timepicker.js",
                         "~/Scripts/FullCalendar/moment.min.js",
                         "~/Scripts/FullCalendar/fullcalendar.min.js"));
 
