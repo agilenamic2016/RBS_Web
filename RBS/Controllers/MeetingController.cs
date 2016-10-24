@@ -15,6 +15,7 @@ using System.Configuration;
 using System.IO;
 using System.Web.UI.WebControls;
 using System.Globalization;
+using System.Text;
 
 namespace RBS.Controllers
 {
@@ -534,7 +535,7 @@ namespace RBS.Controllers
                 System.IO.File.WriteAllLines(filePath, contents);
 
                 //METHOD TO SEND EMAIL IS CALLED
-                SendMail(filePath, userList);
+                SendMail(filePath, userList, mm);
             }
             catch (Exception ex)
             {
@@ -543,7 +544,7 @@ namespace RBS.Controllers
 
         }
 
-        private void SendMail(string filePath, List<string> userList)
+        private void SendMail(string filePath, List<string> userList, MeetingModel mm)
         {
             //CONFIGURE BASIC CONTENTS OF AN EMAIL
             bool hasValidEmail = false;
@@ -578,7 +579,36 @@ namespace RBS.Controllers
 
                 mailMessage.From = new MailAddress(FromEmail, FromName);
                 mailMessage.Subject = "Meeting Invitation from RBS";
-                mailMessage.Body = "You have invited to attend a meeting, please take a look in the attachment.";
+
+                StringBuilder sb = new StringBuilder();
+
+                sb.AppendLine("You have invited to attend a meeting, please take a look in the attachment.");
+
+                // Display Info
+                sb.AppendLine("Date of Meeting: " + mm.BookingDate.Value.ToString("yyyy-MM-dd") + "");
+                sb.AppendLine("Starting Time: " + mm.StartingTime);
+                sb.AppendLine("Ending Time: " + mm.EndingTime);
+                sb.AppendLine();
+
+                string tempQuery = "SELECT * FROM dbo.ParticipantModel WHERE MeetingID = " + mm.ID;
+
+                // Checking whether this timeslot if booked
+                var participants = db.Participants.SqlQuery(tempQuery).ToList();
+
+                List<ParticipantModel> pList = participants.ToList<ParticipantModel>();
+
+                if (pList.Count > 0)
+                {
+                    int i = 1;
+
+                    foreach (ParticipantModel p in pList)
+                    {
+                        sb.AppendLine(i + ") " + db.Users.Find(p.UserID).Name);
+                        i++;
+                    }
+                }
+
+                mailMessage.Body = sb.AppendLine().ToString();
 
                 //MAKE AN ATTACHMENT OUT OF THE .ICS FILE CREATED
                 Attachment mailAttachment = new Attachment(filePath);
