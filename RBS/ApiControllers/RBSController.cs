@@ -15,6 +15,7 @@ using System.Web.Hosting;
 using System.Configuration;
 using System.IO;
 using RBS.Notification;
+using System.Text;
 
 namespace RBS.ApiControllers
 {
@@ -837,10 +838,12 @@ namespace RBS.ApiControllers
         #region Methods
 
         //enum for various patterns
+        //Added here in order to get the standard value for RecurenceType Value, once - 0, Daily - 1, Weekly - 2, Monthly - 3
         public enum OccurrenceRate
         {
-            Weekly,
+            Once,
             Daily,
+            Weekly,
             Monthly
         }
 
@@ -973,7 +976,7 @@ namespace RBS.ApiControllers
                 File.WriteAllLines(filePath, contents);
 
                 //METHOD TO SEND EMAIL IS CALLED
-                SendMail(filePath, userList);
+                SendMail(filePath, userList, mm);
             }
             catch (Exception ex)
             {
@@ -982,13 +985,13 @@ namespace RBS.ApiControllers
             
         }
 
-        private void SendMail(string filePath, List<string> userList)
+        private void SendMail(string filePath, List<string> userList, MeetingModel mm)
         {
             //CONFIGURE BASIC CONTENTS OF AN EMAIL
             bool hasValidEmail = false;
 
             string FromName = "Room Booking System";
-            string FromEmail = HostingEnvironment.MapPath(ConfigurationManager.AppSettings["emailID"].ToString());
+            string FromEmail = ConfigurationManager.AppSettings["emailID"].ToString();
 
             MailMessage mailMessage = new MailMessage();
 
@@ -1007,9 +1010,9 @@ namespace RBS.ApiControllers
             // Only Trigger sending email when there is at least one user being added
             if (hasValidEmail)
             {
-                string emailPwd = HostingEnvironment.MapPath(ConfigurationManager.AppSettings["emailPwd"].ToString());
-                string smtpServer = HostingEnvironment.MapPath(ConfigurationManager.AppSettings["emailPwd"].ToString());
-                int smtpPort = Convert.ToInt16(HostingEnvironment.MapPath(ConfigurationManager.AppSettings["smtpPort"].ToString()));
+                string emailPwd = ConfigurationManager.AppSettings["emailPwd"].ToString();
+                string smtpServer = ConfigurationManager.AppSettings["smtpServer"].ToString();
+                int smtpPort = Convert.ToInt16(ConfigurationManager.AppSettings["smtpPort"].ToString());
                 SmtpClient smtp = new SmtpClient(smtpServer, smtpPort);
                 smtp.Credentials = new System.Net.NetworkCredential(FromEmail, emailPwd);
                 smtp.EnableSsl = true;
@@ -1017,7 +1020,37 @@ namespace RBS.ApiControllers
 
                 mailMessage.From = new MailAddress(FromEmail, FromName);
                 mailMessage.Subject = "Meeting Invitation from RBS";
-                mailMessage.Body = "You have invited to attend a meeting, please take a look in the attachment.";
+
+                StringBuilder sb = new StringBuilder();
+
+                sb.AppendLine("You have invited to attend a meeting, please take a look in the attachment.");
+
+                // Display Info
+                sb.AppendLine("Date of Meeting: " + mm.BookingDate.Value.ToString("yyyy-MM-dd") + "");
+                sb.AppendLine("Starting Time: " + mm.StartingTime);
+                sb.AppendLine("Ending Time: " + mm.EndingTime);
+                sb.AppendLine();
+
+                string tempQuery = "SELECT * FROM dbo.ParticipantModel WHERE MeetingID = " + mm.ID;
+
+                // Checking whether this timeslot if booked
+                var participants = db.Participants.SqlQuery(tempQuery).ToList();
+
+                List<ParticipantModel> pList = participants.ToList<ParticipantModel>();
+
+                if (pList.Count > 0)
+                {
+                    int i = 1;
+
+                    foreach (ParticipantModel p in pList)
+                    {
+                        sb.AppendLine(i + ") " + db.Users.Find(p.UserID).Name);
+                        i++;
+                    }
+                }
+
+                mailMessage.Body = sb.AppendLine().ToString();
+
 
                 //MAKE AN ATTACHMENT OUT OF THE .ICS FILE CREATED
                 Attachment mailAttachment = new Attachment(filePath);
