@@ -9,13 +9,15 @@ using System;
 using PagedList;
 using System.Collections.Generic;
 using RBS.Notification;
-using System.Web.Hosting;
 using System.Net.Mail;
 using System.Configuration;
 using System.IO;
 using System.Web.UI.WebControls;
 using System.Globalization;
 using System.Text;
+using Newtonsoft.Json;
+using RBS.DTO;
+using AutoMapper;
 
 namespace RBS.Controllers
 {
@@ -179,26 +181,26 @@ namespace RBS.Controllers
 
                     if (bookedMeeting.Count == 0)
                     {
-                        MeetingModel meeting = new MeetingModel();
-                        meeting.RoomID = meetingModel.RoomID;
-                        meeting.Title = meetingModel.Title;
-                        meeting.Purpose = meetingModel.Purpose;
-                        meeting.BookingDate = meetingModel.BookingDate;
-                        meeting.StartingTime = meetingModel.StartingTime;
-                        meeting.EndingTime = meetingModel.EndingTime;
-                        meeting.RecurenceType = meetingModel.RecurenceType;
-                        meeting.SCCStartDate = meetingModel.SCCStartDate;
-                        meeting.SCCEndDate = meetingModel.SCCEndDate;
-                        meeting.CreatedBy = context.UserID;
-                        meeting.CreatedDate = DateTime.Now;
+                        //MeetingModel meeting = new MeetingModel();
+                        //meeting.RoomID = meetingModel.RoomID;
+                        //meeting.Title = meetingModel.Title;
+                        //meeting.Purpose = meetingModel.Purpose;
+                        //meeting.BookingDate = meetingModel.BookingDate;
+                        //meeting.StartingTime = meetingModel.StartingTime;
+                        //meeting.EndingTime = meetingModel.EndingTime;
+                        //meeting.RecurenceType = meetingModel.RecurenceType;
+                        //meeting.SCCStartDate = meetingModel.SCCStartDate;
+                        //meeting.SCCEndDate = meetingModel.SCCEndDate;
+                        //meeting.CreatedBy = context.UserID;
+                        //meeting.CreatedDate = DateTime.Now;
 
-                        if (ModelState.IsValid)
-                        {
-                            db.Meetings.Add(meeting);
-                            db.SaveChanges();
+                        //db.Meetings.Add(meeting);
+                        //db.SaveChanges();
 
-                            return RedirectToAction("Index");
-                        }
+                        // Change to store in session, later save to DB at one time
+                        Session["Meeting"] = meetingModel;
+                        return RedirectToAction("AddAttendee");
+                        
                     }
                     else
                     {
@@ -245,29 +247,31 @@ namespace RBS.Controllers
 
                     if (checkavalilable == 0)
                     {
-                        foreach (var date in dates)
-                        {
-                            MeetingModel meeting = new MeetingModel();
-                            meeting.RoomID = meetingModel.RoomID;
-                            meeting.Title = meetingModel.Title;
-                            meeting.Purpose = meetingModel.Purpose;
-                            meeting.BookingDate = DateTime.ParseExact(date.ToString("yyyy-MM-dd"), "yyyy-MM-dd", CultureInfo.InvariantCulture);
-                            meeting.StartingTime = meetingModel.StartingTime;
-                            meeting.EndingTime = meetingModel.EndingTime;
-                            meeting.RecurenceType = meetingModel.RecurenceType;
-                            meeting.SCCStartDate = meetingModel.SCCStartDate;
-                            meeting.SCCEndDate = meetingModel.SCCEndDate;
-                            meeting.CreatedBy = context.UserID;
-                            meeting.CreatedDate = DateTime.Now;
+                        //foreach (var date in dates)
+                        //{
+                        //    MeetingModel meeting = new MeetingModel();
+                        //    meeting.RoomID = meetingModel.RoomID;
+                        //    meeting.Title = meetingModel.Title;
+                        //    meeting.Purpose = meetingModel.Purpose;
+                        //    meeting.BookingDate = DateTime.ParseExact(date.ToString("yyyy-MM-dd"), "yyyy-MM-dd", CultureInfo.InvariantCulture);
+                        //    meeting.StartingTime = meetingModel.StartingTime;
+                        //    meeting.EndingTime = meetingModel.EndingTime;
+                        //    meeting.RecurenceType = meetingModel.RecurenceType;
+                        //    meeting.SCCStartDate = meetingModel.SCCStartDate;
+                        //    meeting.SCCEndDate = meetingModel.SCCEndDate;
+                        //    meeting.CreatedBy = context.UserID;
+                        //    meeting.CreatedDate = DateTime.Now;
 
-                            if (ModelState.IsValid)
-                            {
-                                db.Meetings.Add(meeting);
-                                db.SaveChanges();
-                            }
-                        }
+                        //    if (ModelState.IsValid)
+                        //    {
+                        //        db.Meetings.Add(meeting);
+                        //        db.SaveChanges();
+                        //    }
+                        //}
 
-                        return RedirectToAction("Index");
+                        // Change to store in session, later save to DB at one time
+                        Session["Meeting"] = meetingModel;
+                        return RedirectToAction("AddAttendee");
                     }
                     else
                     {
@@ -365,6 +369,197 @@ namespace RBS.Controllers
             ViewBag.RoomID = new SelectList(db.Rooms, "ID", "Name", meetingModel.RoomID);
 
             return View(meetingModel);
+        }
+
+        // GET: Meeting/AddAttendee
+        public ActionResult AddAttendee()
+        {
+            MeetingModel meetingModel = (MeetingModel)Session["Meeting"];
+
+            if (meetingModel != null)
+            {
+                IQueryable<UserModel> users = db.Users.Where(a => a.IsActive == true);
+
+                List<UserDTO> userList = new List<UserDTO>();
+                Mapper.Initialize(cfg => cfg.CreateMap<UserModel, UserDTO>());
+
+                foreach (UserModel um in users)
+                {
+                    um.Department = null;
+                    UserDTO newDto = Mapper.Map<UserDTO>(um);
+                    userList.Add(newDto);
+                }
+
+                userList = userList.OrderBy(u => u.Name).ToList();
+                IQueryable<DepartmentModel> departments = db.Departments.OrderBy(u => u.Name);
+
+                string userjson = JsonConvert.SerializeObject(userList);
+                string deptjson = JsonConvert.SerializeObject(departments.ToList());
+
+                ViewBag.Users = userjson;
+                ViewBag.Departments = deptjson;
+
+                return View();
+            }
+            else
+            {
+                return RedirectToAction("Create");
+            }
+        }
+
+        [HttpPost]
+        public ActionResult AddAttendee(string selectedUsers, string selectedDepts)
+        {
+            if (!String.IsNullOrEmpty(selectedUsers) || !String.IsNullOrEmpty(selectedDepts))
+            {
+                MeetingModel meetingModel = (MeetingModel)Session["Meeting"];
+
+                if (meetingModel != null)
+                {
+                    List<int> userIds = new List<int>();
+
+                    if (selectedUsers.Length > 0)
+                    {
+                        string[] ids = selectedUsers.Trim().Split(',');
+
+                        for (int i = 0; i < ids.Length; i++)
+                        {
+                            int temp = Convert.ToInt32(ids[i]);
+                            userIds.Add(temp);
+                        }
+                    }
+                    else if (selectedDepts.Length > 0)
+                    {
+                        string tempQuery = "SELECT ID FROM dbo.UserModel WHERE DepartmentID IN (" + selectedDepts + ")";
+
+                        using (var context = new RBSContext())
+                        {
+                            userIds = context.Database.SqlQuery<int>("SELECT ID FROM dbo.UserModel WHERE DepartmentID IN (" + selectedDepts + ")").ToList();
+                        }
+                    }
+
+                    if (meetingModel.RecurenceType == 0)
+                    {
+                        MeetingModel meeting = new MeetingModel();
+                        meeting.RoomID = meetingModel.RoomID;
+                        meeting.Title = meetingModel.Title;
+                        meeting.Purpose = meetingModel.Purpose;
+                        meeting.BookingDate = meetingModel.BookingDate;
+                        meeting.StartingTime = meetingModel.StartingTime;
+                        meeting.EndingTime = meetingModel.EndingTime;
+                        meeting.RecurenceType = meetingModel.RecurenceType;
+                        meeting.SCCStartDate = meetingModel.SCCStartDate;
+                        meeting.SCCEndDate = meetingModel.SCCEndDate;
+                        meeting.CreatedBy = context.UserID;
+                        meeting.CreatedDate = DateTime.Now;
+
+                        db.Meetings.Add(meeting);
+                        db.SaveChanges();
+
+                        // After saving the db, proceed to add participants
+                        foreach (var id in userIds)
+                        {
+                            ParticipantModel participant = new ParticipantModel();
+                            participant.MeetingID = Convert.ToInt32(meeting.ID);
+                            participant.UserID = id;
+                            participant.CreatedBy = context.UserID;
+                            participant.CreatedDate = DateTime.Now;
+
+                            db.Participants.Add(participant);
+                            db.SaveChanges();
+                        }
+                    }
+                    else
+                    {
+                        List<DateTime> dates = new List<DateTime>();
+                        DateTime newStartDate = meetingModel.BookingDate.Value;
+                        DateTime newEndDate = DateTime.ParseExact(meetingModel.SCCEndDate, "yyyy-MM-dd", CultureInfo.InvariantCulture);
+
+                        if (meetingModel.RecurenceType == 1)
+                        {
+                            dates = GetOccurrences(newStartDate, newEndDate, OccurrenceRate.Daily);
+                        }
+                        else if (meetingModel.RecurenceType == 2)
+                        {
+                            dates = GetOccurrences(newStartDate, newEndDate, OccurrenceRate.Weekly);
+                        }
+                        else if (meetingModel.RecurenceType == 3)
+                        {
+                            dates = GetOccurrences(newStartDate, newEndDate, OccurrenceRate.Monthly);
+                        }
+
+                        foreach (var date in dates)
+                        {
+                            MeetingModel meeting = new MeetingModel();
+                            meeting.RoomID = meetingModel.RoomID;
+                            meeting.Title = meetingModel.Title;
+                            meeting.Purpose = meetingModel.Purpose;
+                            meeting.BookingDate = DateTime.ParseExact(date.ToString("yyyy-MM-dd"), "yyyy-MM-dd", CultureInfo.InvariantCulture);
+                            meeting.StartingTime = meetingModel.StartingTime;
+                            meeting.EndingTime = meetingModel.EndingTime;
+                            meeting.RecurenceType = meetingModel.RecurenceType;
+                            meeting.SCCStartDate = meetingModel.SCCStartDate;
+                            meeting.SCCEndDate = meetingModel.SCCEndDate;
+                            meeting.CreatedBy = context.UserID;
+                            meeting.CreatedDate = DateTime.Now;
+
+                            db.Meetings.Add(meeting);
+                            db.SaveChanges();
+
+                            // After saving the db, proceed to add participants
+                            foreach (var id in userIds)
+                            {
+                                ParticipantModel participant = new ParticipantModel();
+                                participant.MeetingID = Convert.ToInt32(meeting.ID);
+                                participant.UserID = id;
+                                participant.CreatedBy = context.UserID;
+                                participant.CreatedDate = DateTime.Now;
+
+                                db.Participants.Add(participant);
+                                db.SaveChanges();
+                            }
+                        }
+                    }
+
+                    // After saving, sending invitation to the participants
+                    CreateEmail(meetingModel, userIds);
+
+                    //after saving, sending notification
+                    sendNotification(meetingModel, userIds);
+
+                    return RedirectToAction("Index");
+                }
+                else
+                {
+                    return RedirectToAction("Create");
+                }
+            }
+            else
+            {
+                IQueryable<UserModel> users = db.Users.Where(a => a.IsActive == true);
+
+                List<UserDTO> userList = new List<UserDTO>();
+                Mapper.Initialize(cfg => cfg.CreateMap<UserModel, UserDTO>());
+
+                foreach (UserModel um in users)
+                {
+                    um.Department = null;
+                    UserDTO newDto = Mapper.Map<UserDTO>(um);
+                    userList.Add(newDto);
+                }
+
+                userList = userList.OrderBy(u => u.Name).ToList();
+                IQueryable<DepartmentModel> departments = db.Departments.OrderBy(u => u.Name);
+
+                string userjson = JsonConvert.SerializeObject(userList);
+                string deptjson = JsonConvert.SerializeObject(departments.ToList());
+
+                ViewBag.Users = userjson;
+                ViewBag.Departments = deptjson;
+                ViewBag.ErrorMessage = "Please select at least one user or one department.";
+
+                return View();
+            }
         }
 
         // GET: Meeting/Delete/5
@@ -493,11 +688,13 @@ namespace RBS.Controllers
             return occurrences;
         }
 
-        private void CreateEmail(MeetingModel mm, List<string> userList)
+        private void CreateEmail(MeetingModel mm, List<int> userList)
         {
             try
             {
-                string location = mm.Room.Name;
+                RoomModel room = db.Rooms.Find(mm.RoomID);
+
+                string location = room.Name;
                 string title = mm.Title;
                 string purpose = mm.Purpose;
 
@@ -516,7 +713,7 @@ namespace RBS.Controllers
                               "SUMMARY:" + title, "PRIORITY:3",
                          "END:VEVENT", "END:VCALENDAR" };
 
-                string path = HostingEnvironment.MapPath(ConfigurationManager.AppSettings["EmailPath"].ToString());
+                string path = ConfigurationManager.AppSettings["EmailPath"].ToString();
 
                 if (!Directory.Exists(path))
                 {
@@ -544,20 +741,20 @@ namespace RBS.Controllers
 
         }
 
-        private void SendMail(string filePath, List<string> userList, MeetingModel mm)
+        private void SendMail(string filePath, List<int> userList, MeetingModel mm)
         {
             //CONFIGURE BASIC CONTENTS OF AN EMAIL
             bool hasValidEmail = false;
 
             string FromName = "Room Booking System";
-            string FromEmail = HostingEnvironment.MapPath(ConfigurationManager.AppSettings["emailID"].ToString());
+            string FromEmail = ConfigurationManager.AppSettings["emailID"].ToString();
 
             MailMessage mailMessage = new MailMessage();
 
             // Loop through the participants to add into ToEmail, username = email
             foreach (var id in userList)
             {
-                UserModel user = db.Users.Find(Convert.ToInt32(id));
+                UserModel user = db.Users.Find(id);
 
                 if (user != null)
                 {
@@ -569,11 +766,11 @@ namespace RBS.Controllers
             // Only Trigger sending email when there is at least one user being added
             if (hasValidEmail)
             {
-                string emailPwd = HostingEnvironment.MapPath(ConfigurationManager.AppSettings["emailPwd"].ToString());
-                string smtpServer = HostingEnvironment.MapPath(ConfigurationManager.AppSettings["emailPwd"].ToString());
-                int smtpPort = Convert.ToInt16(HostingEnvironment.MapPath(ConfigurationManager.AppSettings["smtpPort"].ToString()));
+                string emailPwd = ConfigurationManager.AppSettings["emailPwd"].ToString();
+                string smtpServer = ConfigurationManager.AppSettings["smtpServer"].ToString();
+                int smtpPort = Convert.ToInt16(ConfigurationManager.AppSettings["smtpPort"].ToString());
                 SmtpClient smtp = new SmtpClient(smtpServer, smtpPort);
-                smtp.Credentials = new System.Net.NetworkCredential(FromEmail, emailPwd);
+                smtp.Credentials = new NetworkCredential(FromEmail, emailPwd);
                 smtp.EnableSsl = true;
                 smtp.DeliveryMethod = SmtpDeliveryMethod.Network;
 
@@ -619,7 +816,7 @@ namespace RBS.Controllers
             }
         }
 
-        private void sendNotification(MeetingModel mm, List<string> userList)
+        private void sendNotification(MeetingModel mm, List<int> userList)
         {
             try
             {
@@ -628,7 +825,7 @@ namespace RBS.Controllers
 
                 foreach (var id in userList)
                 {
-                    UserModel user = db.Users.Find(Convert.ToInt32(id));
+                    UserModel user = db.Users.Find(id);
 
                     if (user != null)
                     {

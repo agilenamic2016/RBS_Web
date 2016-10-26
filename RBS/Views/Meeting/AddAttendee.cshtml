@@ -4,14 +4,13 @@
     ViewBag.Title = "Add Attendee";
 }
 
+<link href="~/Content/selectize.css" rel="stylesheet" />
 
 <h2>Add Attendee</h2>
 
 
 @using (Html.BeginForm()) 
 {
-    @Html.AntiForgeryToken()
-
     if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
     {
         <div class="alert alert-danger" role="alert">@ViewBag.ErrorMessage</div>
@@ -19,26 +18,52 @@
 
     <div class="form-horizontal">
         <hr />
-        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
-        <div class="form-group">
-            @Html.LabelFor(model => model.RoomID, "RoomID", htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.DropDownList("RoomID", null, htmlAttributes: new { @class = "form-control" })
-                @Html.ValidationMessageFor(model => model.RoomID, "", new { @class = "text-danger" })
+        
+        <div class="container">
+            <form>
+                <label class="radio-inline">
+                    <input type="radio" name="radiobutton" value="0">Adding by select attendee
+                </label>
+                <label class="radio-inline">
+                    <input type="radio" name="radiobutton" value="1">Adding by select department (All Staff who under selected department will be added)
+                </label>
+            </form>
+        </div>
+        
+        <br/>
+
+        <div class="form-group hidden" id="user">
+            <div class="col-md-12">
+                Search by typing on the textbox below. You can select multiple users.
+                <br />
+                <br />
+            </div>
+            <div class="col-md-12">
+                <div class="sandbox">
+                    <label for="input-users-selectized">Selected Users:</label>
+                    <input type="text" id="input-users" name="selectedUsers" class="demo-default selectized" value="" tabindex="-1" style="display: none;">
+                </div>
             </div>
         </div>
 
-        <div class="form-group">
-            @Html.LabelFor(model => model.RoomID, "RoomID", htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.DropDownList("RoomID", null, htmlAttributes: new { @class = "form-control" })
-                @Html.ValidationMessageFor(model => model.RoomID, "", new { @class = "text-danger" })
+        <div class="form-group hidden" id="department">
+            <div class="col-md-12">
+                Search by typing on the textbox below. You can select multiple departments.
+                <br />
+                <br />
+            </div>
+            <div class="col-md-12">
+                <div class="sandbox">
+                    <label for="input-departments-selectized">Selected Departments:</label>
+                    <input type="text" id="input-departments" name="selectedDepts" class="demo-default selectized" value="" tabindex="-1" style="display: none;">
+                </div>
             </div>
         </div>
 
+        <br/>
         <div class="form-group">
             <div class="col-md-offset-2 col-md-10">
-                <input type="submit" value="Add" class="btn btn-primary" />&nbsp;&nbsp;@Html.ActionLink("Cancel", "Index")
+                <input type="submit" value="Add" class="btn btn-primary" />&nbsp;&nbsp;@Html.ActionLink("Back to Create Meeting", "Create")
             </div>
         </div>
     </div>
@@ -46,50 +71,42 @@
 
 <div class="clearfix"></div>
 
-@*<hr>
-<h2>Calendar Session</h2>
-
-<div id='calendar'></div>*@
-
-
 @section Scripts {
-    @Scripts.Render("~/bundles/jqueryval")
-
     <script type="text/javascript">
 
-        $(function () {
-            $('#StartingTime').timepicker({ 'scrollDefault': '0830' });
+        $('#input-users').selectize({
+            persist: false,
+            maxItems: null,
+            valueField: 'ID',
+            labelField: 'Name',
+            searchField: ['Name'],
+            options: @Html.Raw(ViewBag.Users)
         });
 
-        $(function () {
-            $('#EndingTime').timepicker({ 'scrollDefault': '0830' });
+        $('#input-departments').selectize({
+            persist: false,
+            maxItems: null,
+            valueField: 'ID',
+            labelField: 'Name',
+            searchField: ['Name'],
+            options: @Html.Raw(ViewBag.Departments)
         });
 
-        function PopulateSCCEndDate(cccurrenceRate) {
-            // Populate the SCCENDDate if rate > 0
-            if (cccurrenceRate > 0) {
-                $("#sccEndDateGroup").removeClass('hidden');
-            }
-            else
-            {
-                $("#sccEndDateGroup").addClass('hidden');
-            }
-        }
+        $(document).ready()
+        {
+            $('input[name=radiobutton]').change(function () {
+                var value = $('input[name=radiobutton]:checked').val();
 
-        @*$(document).ready(function () {
-            var array = @(Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(@ViewBag.EventList)));
-
-            $('#calendar').fullCalendar({
-                header: {
-                    left: 'prev,next today',
-                    center: 'title',
-                    right: 'month,agendaWeek,agendaDay,listWeek'
-                },
-                navLinks: true, // can click day/week names to navigate views
-                editable: true,
-                eventLimit: true, // allow "more" link when too many events
-                events: null
+                // 0 = Add by User, 1 = Add by Department
+                if (value > 0) {
+                    $("#department").removeClass('hidden');
+                    $('#user').addClass('hidden');
+                }
+                else {
+                    $("#department").addClass('hidden');
+                    $('#user').removeClass('hidden');
+                }
             });
-        });*@
+        }
     </script>
 }
