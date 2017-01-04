@@ -24,4 +24,9 @@ namespace RBS.DTO
         public string SCCEndDate { get; set; }
 
     }
+
+    public class MeetingWithName : MeetingDTO
+    {
+        public string UserName { get; set; }
+    }
 }

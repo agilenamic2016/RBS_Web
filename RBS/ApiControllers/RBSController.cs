@@ -42,7 +42,7 @@ namespace RBS.ApiControllers
                     userName = jsonObj["UserName"].ToString();
                     password = jsonObj["Password"].ToString();
                     tokenId = jsonObj["TokenID"].ToString();
-                    Log.Error("login info:"+tokenId, context.STR_USER, context.STR_LOGIN);
+                    //Log.Error("login info:"+tokenId, context.STR_USER, context.STR_LOGIN);
                 }
 
                 if (!String.IsNullOrEmpty(userName) && !String.IsNullOrEmpty(password))
@@ -229,15 +229,41 @@ namespace RBS.ApiControllers
 
                         string datetimenow = DateTime.Now.ToString("yyyy-MM-dd");
                         DateTime datetimenowfromzero= DateTime.ParseExact(datetimenow, "yyyy-MM-dd", CultureInfo.InvariantCulture);
-                        IQueryable<MeetingModel> meetings = db.Meetings.Where(a => a.BookingDate >= datetimenowfromzero);
+                        //IQueryable<MeetingModel> meetings = db.Meetings.Where(a => a.BookingDate >= datetimenowfromzero);
 
-                        List<MeetingDTO> meetingList = new List<MeetingDTO>();
+                        IQueryable<MeetingModel> meetings = from ml in db.Meetings
+                                                            join pl in db.Participants on ml.ID equals pl.MeetingID
+                                                            where pl.UserID == id && ml.BookingDate >= datetimenowfromzero
+                                                            select ml;
+
+
+                        List < MeetingWithName > meetingList = new List<MeetingWithName>();
                         Mapper.Initialize(cfg => cfg.CreateMap<MeetingModel, MeetingDTO>());
 
                         foreach (MeetingModel mm in meetings)
                         {
                             MeetingDTO newDto = Mapper.Map<MeetingDTO>(mm);
-                            meetingList.Add(newDto);
+
+                            MeetingWithName MWN = new MeetingWithName();
+                            MWN.ID = newDto.ID;
+                            MWN.RoomID = newDto.RoomID;
+                            MWN.Title = newDto.Title;
+                            MWN.Purpose = newDto.Purpose;
+                            MWN.BookingDate = newDto.BookingDate;
+                            MWN.StartingTime = newDto.StartingTime;
+                            MWN.EndingTime = newDto.EndingTime;
+                            MWN.CreatedBy = newDto.CreatedBy;
+                            MWN.CreatedDate = newDto.CreatedDate;
+                            MWN.UpdatedBy = newDto.UpdatedBy;
+                            MWN.UpdatedDate = newDto.UpdatedDate;
+                            MWN.RecurenceType = newDto.RecurenceType;
+                            MWN.SCCStartDate = newDto.SCCStartDate;
+                            MWN.SCCEndDate = newDto.SCCEndDate;
+
+                            UserModel ss = db.Users.FirstOrDefault(s => s.Username.Equals(newDto.CreatedBy));
+                            MWN.UserName = ss.Name;
+
+                            meetingList.Add(MWN);
                         }
 
                         return Ok(meetingList);
@@ -337,13 +363,32 @@ namespace RBS.ApiControllers
                         DateTime selectedDate = DateTime.ParseExact(date, "yyyy-MM-dd", CultureInfo.InvariantCulture);
                         IQueryable<MeetingModel> timeSlots = db.Meetings.Where(u => u.BookingDate >= selectedDate && u.RoomID==roomIdInt);
 
-                        List<MeetingDTO> slotList = new List<MeetingDTO>();
+                        List<MeetingWithName> slotList = new List<MeetingWithName>();
                         Mapper.Initialize(cfg => cfg.CreateMap<MeetingModel, MeetingDTO>());
 
                         foreach (MeetingModel mm in timeSlots)
                         {
                             MeetingDTO newDto = Mapper.Map<MeetingDTO>(mm);
-                            slotList.Add(newDto);
+                            MeetingWithName MWN = new MeetingWithName();
+                            MWN.ID = newDto.ID;
+                            MWN.RoomID = newDto.RoomID;
+                            MWN.Title = newDto.Title;
+                            MWN.Purpose = newDto.Purpose;
+                            MWN.BookingDate = newDto.BookingDate;
+                            MWN.StartingTime = newDto.StartingTime;
+                            MWN.EndingTime = newDto.EndingTime;
+                            MWN.CreatedBy = newDto.CreatedBy;
+                            MWN.CreatedDate = newDto.CreatedDate;
+                            MWN.UpdatedBy = newDto.UpdatedBy;
+                            MWN.UpdatedDate = newDto.UpdatedDate;
+                            MWN.RecurenceType = newDto.RecurenceType;
+                            MWN.SCCStartDate = newDto.SCCStartDate;
+                            MWN.SCCEndDate = newDto.SCCEndDate;
+
+                            UserModel ss = db.Users.FirstOrDefault(s => s.Username.Equals(newDto.CreatedBy));
+                            MWN.UserName = ss.Name;
+
+                            slotList.Add(MWN);
                         }
 
                         return Ok(slotList);
@@ -381,7 +426,7 @@ namespace RBS.ApiControllers
                 int recurenceType = 0;
                 string sccStartDate = string.Empty;
                 string sccEndDate = string.Empty;
-
+                string BookedMsg = "Time slot has been booked:";
                 if (jsonObj != null)
                 {
                     sessionKey = jsonObj["SessionKey"].ToString();
@@ -435,8 +480,23 @@ namespace RBS.ApiControllers
                             }
                             else
                             {
+                                int BookedCount = 1;
+                                foreach (MeetingModel bm in bookedMeeting)
+                                {
+                                    
+                                    DateTime bookedMeetingDate = Convert.ToDateTime(bm.BookingDate);
+                                    string BookedMeetingDateStr = bookedMeetingDate.ToString("dd/MM/yyyy");
+                                    var bookedMeetingStartTime = bm.StartingTime;
+                                    var bookedMeetingEndTime = bm.EndingTime;
+                                    var bookedMeetingOwner = bm.CreatedBy;
+                                    var bookedMeetingTitle = bm.Title;
+                                    UserModel ss = db.Users.FirstOrDefault(s => s.Username.Equals(bookedMeetingOwner));
+                                    var intervalTime = bookedMeetingStartTime.Substring(0, 2) + ":" + bookedMeetingStartTime.Substring(2, 2) + "-" + bookedMeetingEndTime.Substring(0, 2) + ":" + bookedMeetingEndTime.Substring(2, 2);
+                                    BookedMsg = BookedMsg + "\n" + BookedCount.ToString() + ")" + " Meeting: " + bookedMeetingTitle + "\n   Date Time: " + BookedMeetingDateStr + " " + intervalTime + "\n   Booked By: " + ss.Name;
+                                    BookedCount++;
+                                }
                                 // To be returned the user who booking this time slot
-                                return BadRequest("This time slot has been booked.");
+                                return BadRequest(BookedMsg);
                             }
                         }
                         else
@@ -463,9 +523,13 @@ namespace RBS.ApiControllers
                             }
 
                             int checkavalilable = 0;
+                            string BookedMsgRecurrecnce = "Time slot has been booked:";
+                            int BookedMsgRecurrecnceCount = 1;
                             foreach (var date in dates)
                             {
-                                string tempQuery = "SELECT * FROM dbo.MeetingModel WHERE RoomID = " + Convert.ToInt32(roomId) + " AND BookingDate='" + bookingDate + " 00:00:00'" + " AND (" + sqlStart + " between StartingTime and EndingTime OR " + sqlEnd + " between StartingTime and EndingTime)";
+
+                                var dateToCompare = date.ToString("yyyy-MM-dd");
+                                string tempQuery = "SELECT * FROM dbo.MeetingModel WHERE RoomID = " + Convert.ToInt32(roomId) + " AND BookingDate='" + dateToCompare + " 00:00:00'" + " AND (" + sqlStart + " between StartingTime and EndingTime OR " + sqlEnd + " between StartingTime and EndingTime)";
 
                                 // Checking whether this timeslot if booked
                                 var bookedMeeting = db.Meetings.SqlQuery(tempQuery).ToList();
@@ -473,6 +537,21 @@ namespace RBS.ApiControllers
                                 if (bookedMeeting.Count > 0)
                                 {
                                     checkavalilable++;
+
+                                    
+                                    foreach (MeetingModel bm in bookedMeeting)
+                                    {
+                                        DateTime bookedMeetingDate = Convert.ToDateTime(bm.BookingDate);
+                                        string BookedMeetingDateStr = bookedMeetingDate.ToString("dd/MM/yyyy");
+                                        var bookedMeetingStartTime = bm.StartingTime;
+                                        var bookedMeetingEndTime = bm.EndingTime;
+                                        var bookedMeetingOwner = bm.CreatedBy;
+                                        var bookedMeetingTitle = bm.Title;
+                                        UserModel ss = db.Users.FirstOrDefault(s => s.Username.Equals(bookedMeetingOwner));
+                                        var intervalTime = bookedMeetingStartTime.Substring(0, 2) + ":" + bookedMeetingStartTime.Substring(2, 2) + "-" + bookedMeetingEndTime.Substring(0, 2) + ":" + bookedMeetingEndTime.Substring(2, 2);
+                                        BookedMsgRecurrecnce = BookedMsgRecurrecnce + "\n" + BookedMsgRecurrecnceCount.ToString() + ")" + " Meeting: " + bookedMeetingTitle + "\n   Date Time: " + BookedMeetingDateStr + " " + intervalTime + "\n   Booked By: " + ss.Name;
+                                        BookedMsgRecurrecnceCount++;
+                                    }
                                 }
                             }
 
@@ -506,7 +585,7 @@ namespace RBS.ApiControllers
                             else
                             {
                                 // To be returned the user who booking this time slot
-                                return BadRequest("Time slot has been booked.");
+                                return BadRequest(BookedMsgRecurrecnce);
                             }
                         }
                     }
@@ -1074,7 +1153,7 @@ namespace RBS.ApiControllers
                         string tokenID = user.TokenID.Trim();
                         tokenID = tokenID.Replace(" ","");
                         BLNotification.PushNotification(tokenID, message, "", Title, "");
-                        Log.Error("Notification", context.STR_USER, "userid= "+ id + " token id:" + tokenID + " message:"+ message + " Title:"+Title);
+                        //Log.Error("Notification", context.STR_USER, "userid= "+ id + " token id:" + tokenID + " message:"+ message + " Title:"+Title);
                     }   
                 }
             }
