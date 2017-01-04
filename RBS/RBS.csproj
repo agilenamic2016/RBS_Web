@@ -186,6 +186,10 @@
     <Compile Include="Migrations\201610241528568_InitialCreate.Designer.cs">
       <DependentUpon>201610241528568_InitialCreate.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201701041506411_MeetingValidationPatch.cs" />
+    <Compile Include="Migrations\201701041506411_MeetingValidationPatch.Designer.cs">
+      <DependentUpon>201701041506411_MeetingValidationPatch.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\ConfigModel.cs" />
     <Compile Include="Models\DepartmentModel.cs" />
@@ -347,6 +351,9 @@
   <ItemGroup>
     <EmbeddedResource Include="Migrations\201610241528568_InitialCreate.resx">
       <DependentUpon>201610241528568_InitialCreate.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201701041506411_MeetingValidationPatch.resx">
+      <DependentUpon>201701041506411_MeetingValidationPatch.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

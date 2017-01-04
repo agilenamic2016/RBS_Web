@@ -23,14 +23,17 @@ namespace RBS.Models
         [StringLength(500)]
         public string Purpose { get; set; }
 
+        [Required]
         [DisplayName("Date")]
         [DataType(DataType.Date)]
         [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true)]
         public DateTime? BookingDate { get; set; }
 
+        [Required]
         [DisplayName("Starting Time")]
         public string StartingTime { get; set; }
 
+        [Required]
         [DisplayName("Ending Time")]
         public string EndingTime { get; set; }
 
