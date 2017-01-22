@@ -69,8 +69,11 @@ namespace RBS.Controllers
 
             var todayDate = DateTime.Today;
             var startingTime = MilitaryTime.ChangeToMilitaryTime(DateTime.Now);
-            string tempQuery = "SELECT A.* FROM MeetingModel A INNER JOIN ParticipantModel B on A.ID = B.MeetingID INNER JOIN UserModel C on B.UserID = C.ID "
-                             + "WHERE C.Username = '" + context.UserID + "' AND BookingDate >= '" + todayDate + "'";
+            
+            var queryUSer = db.Users.Where(c => c.Username == context.UserID).FirstOrDefault();
+            int userID = queryUSer.ID;
+            string tempQuery = "SELECT A.* FROM MeetingModel A left JOIN ParticipantModel B on A.ID = B.MeetingID "
+                             + "WHERE (B.UserID='" + userID + "' or A.CreatedBy='" + context.UserID + "') AND BookingDate >= '" + todayDate + "'";
 
             var meetings = db.Meetings.SqlQuery(tempQuery).ToList().AsQueryable();
 
@@ -147,7 +150,10 @@ namespace RBS.Controllers
             ViewBag.RoomID = new SelectList(db.Rooms, "ID", "Name");
             ViewBag.RecurenceType = GetOccurrenceRate(null);
 
-            return View();
+            var Minutes = GetAllMinutess();
+            var model = new MeetingModel();
+            model.Notifications = GetSelectListItems(Minutes);
+            return View(model);
         }
 
         // POST: Meeting/Create
@@ -155,7 +161,7 @@ namespace RBS.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create([Bind(Include = "ID,RoomID,Title,Purpose,BookingDate,StartingTime,EndingTime,CreatedBy,CreatedDate,UpdatedBy,UpdatedDate,RecurenceType,SCCStartDate,SCCEndDate")] MeetingModel meetingModel)
+        public ActionResult Create([Bind(Include = "ID,RoomID,Title,Purpose,BookingDate,StartingTime,EndingTime,CreatedBy,CreatedDate,UpdatedBy,UpdatedDate,RecurenceType,SCCStartDate,SCCEndDate, Notification")] MeetingModel meetingModel)
         {
             // Convert the Starting time and Ending time to String (4 Char)
             string strStart = string.Empty;
@@ -166,7 +172,7 @@ namespace RBS.Controllers
 
             meetingModel.StartingTime = strStart;
             meetingModel.EndingTime = strEnd;
-
+ 
             string sqlStart = (Convert.ToInt32(strStart) + 1).ToString(); // + 1 to staring time in order to perform between condition 
             string sqlEnd = (Convert.ToInt32(strEnd) - 1).ToString();     // - 1 to staring time in order to perform between condition 
 
@@ -283,6 +289,9 @@ namespace RBS.Controllers
             ViewBag.RoomID = new SelectList(db.Rooms, "ID", "Name", meetingModel.RoomID);
             ViewBag.RecurenceType = GetOccurrenceRate(meetingModel.RecurenceType);
 
+            var Minutes = GetAllMinutess();
+
+            meetingModel.Notifications = GetSelectListItems(Minutes);
             return View(meetingModel);
         }
 
@@ -307,7 +316,7 @@ namespace RBS.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit([Bind(Include = "ID,RoomID,Title,Purpose,BookingDate,StartingTime,EndingTime,CreatedBy,CreatedDate,UpdatedBy,UpdatedDate,RecurenceType,SCCStartDate,SCCEndDate")] MeetingModel meetingModel)
+        public ActionResult Edit([Bind(Include = "ID,RoomID,Title,Purpose,BookingDate,StartingTime,EndingTime,CreatedBy,CreatedDate,UpdatedBy,UpdatedDate,RecurenceType,SCCStartDate,SCCEndDate, Notification, NotificationStatus")] MeetingModel meetingModel)
         {
             // Convert the Starting time and Ending time to String (4 Char)
             string strStart = string.Empty;
@@ -321,6 +330,9 @@ namespace RBS.Controllers
 
             string sqlStart = (Convert.ToInt32(strStart) + 1).ToString(); // + 1 to staring time in order to perform between condition 
             string sqlEnd = (Convert.ToInt32(strEnd) - 1).ToString();     // - 1 to staring time in order to perform between condition 
+
+            //string meetingNotifcation = db.Meetings.Find(meetingModel.ID).Notification;
+            //string meetingNotifcationStt = db.Meetings.Find(meetingModel.ID).NotificationStatus;
 
             if (ModelState.IsValid)
             {
@@ -346,7 +358,8 @@ namespace RBS.Controllers
                     meeting.CreatedDate = meetingModel.CreatedDate;
                     meeting.UpdatedBy = context.UserID;
                     meeting.UpdatedDate = DateTime.Now;
-
+                    meeting.Notification = meetingModel.Notification;
+                    meeting.NotificationStatus = meetingModel.NotificationStatus;
                     if (ModelState.IsValid)
                     {
                         db.Entry(meeting).State = EntityState.Modified;
@@ -448,11 +461,16 @@ namespace RBS.Controllers
                         meeting.StartingTime = meetingModel.StartingTime;
                         meeting.EndingTime = meetingModel.EndingTime;
                         meeting.RecurenceType = meetingModel.RecurenceType;
-                        meeting.SCCStartDate = meetingModel.SCCStartDate;
+                        DateTime newStartDate = meetingModel.BookingDate.Value;
+                        meeting.SCCStartDate = newStartDate.ToString("yyyy-MM-dd");
                         meeting.SCCEndDate = meetingModel.SCCEndDate;
                         meeting.CreatedBy = context.UserID;
                         meeting.CreatedDate = DateTime.Now;
-
+                        if (meetingModel.Notification == null)
+                            meeting.Notification = "60";
+                        else
+                            meeting.Notification = meetingModel.Notification;
+                        meeting.NotificationStatus = "0";
                         db.Meetings.Add(meeting);
                         db.SaveChanges();
 
@@ -498,11 +516,15 @@ namespace RBS.Controllers
                             meeting.StartingTime = meetingModel.StartingTime;
                             meeting.EndingTime = meetingModel.EndingTime;
                             meeting.RecurenceType = meetingModel.RecurenceType;
-                            meeting.SCCStartDate = meetingModel.SCCStartDate;
+                            meeting.SCCStartDate = newStartDate.ToString("yyyy-MM-dd");
                             meeting.SCCEndDate = meetingModel.SCCEndDate;
                             meeting.CreatedBy = context.UserID;
                             meeting.CreatedDate = DateTime.Now;
-
+                            if (meetingModel.Notification == null)
+                                meeting.Notification = "60";
+                            else
+                                meeting.Notification = meetingModel.Notification;
+                            meeting.NotificationStatus = "0";
                             db.Meetings.Add(meeting);
                             db.SaveChanges();
 
@@ -525,7 +547,7 @@ namespace RBS.Controllers
                     CreateEmail(meetingModel, userIds);
 
                     //after saving, sending notification
-                    sendNotification(meetingModel, userIds);
+                    sendNotification(meetingModel, userIds, context.UserID);
 
                     return RedirectToAction("Index");
                 }
@@ -816,7 +838,7 @@ namespace RBS.Controllers
             }
         }
 
-        private void sendNotification(MeetingModel mm, List<int> userList)
+        private void sendNotification(MeetingModel mm, List<int> userList, string creatorID)
         {
             try
             {
@@ -835,6 +857,15 @@ namespace RBS.Controllers
                         Log.Error("Notification", context.STR_USER, "userid= " + id + " token id:" + tokenID + " message:" + message + " Title:" + Title);
                     }
                 }
+
+                //send to creator
+                var creator = db.Users.Where(c => c.Username == creatorID).FirstOrDefault();
+                if (creator != null)
+                {
+                    string tokenID = creator.TokenID.Trim();
+                    tokenID = tokenID.Replace(" ", "");
+                    BLNotification.PushNotification(tokenID, message, "", Title, "");
+                }
             }
             catch (Exception ex)
             {
@@ -842,7 +873,38 @@ namespace RBS.Controllers
             }
         }
 
-        #endregion
+        private IEnumerable<string> GetAllMinutess()
+        {
+            return new List<string>
+            {
+                "5",
+                "15",
+                "30",
+                "45",
+                "60",
+            };
+        }
 
+        private IEnumerable<SelectListItem> GetSelectListItems(IEnumerable<string> elements)
+        {
+            // Create an empty list to hold result of the operation
+            var selectList = new List<SelectListItem>();
+
+            // For each string in the 'elements' variable, create a new SelectListItem object
+            // that has both its Value and Text properties set to a particular value.
+            // This will result in MVC rendering each item as:
+            //     <option value="State Name">State Name</option>
+            foreach (var element in elements)
+            {
+                selectList.Add(new SelectListItem
+                {
+                    Value = element,
+                    Text = element
+                });
+            }
+
+            return selectList;
+        }
+        #endregion
     }
 }

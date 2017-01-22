@@ -27,6 +27,8 @@
         @Html.HiddenFor(model => model.SCCEndDate)
         @Html.HiddenFor(model => model.CreatedBy)
         @Html.HiddenFor(model => model.CreatedDate)
+		@Html.HiddenFor(model => model.Notification)
+        @Html.HiddenFor(model => model.NotificationStatus)
 
         <div class="form-group">
             @Html.LabelFor(model => model.RoomID, "RoomID", htmlAttributes: new { @class = "control-label col-md-2" })

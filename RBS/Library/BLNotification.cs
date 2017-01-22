@@ -45,7 +45,7 @@ namespace RBS.Notification
                 }
                 else
                 {
-                    PushAppleNotification(deviceRegisteredID, message, mta_new, 0, 0);
+                    PushAppleNotification(deviceRegisteredID, message, mta_new, 0, contentTitle, 0);
                 }
             }
         }
@@ -151,15 +151,15 @@ namespace RBS.Notification
         #endregion
 
         #region "PUSH APPLE NOTIFICATION"
-        public static void PushAppleNotification(string DeviceRegisteredID, string message, string mta, int notification_type, int devtype = 2)
+        public static void PushAppleNotification(string DeviceRegisteredID, string message, string mta, int notification_type, string title,int devtype = 2)
         {
             try
             {
                 //system_config sc = dataContext.system_config.FirstOrDefault();
 
                 // var payload1 = new NotificationPayload("Device token","Message",Badge,"Sound");
-                var payload1 = new NotificationPayload(DeviceRegisteredID, message, "1", 1, "default");
-                string APNS_P12_KEY = "pushRBS.p12";
+                var payload1 = new NotificationPayload(DeviceRegisteredID, message, "1", 1, "default", title);
+                string APNS_P12_KEY = "pushiStoneRBS.p12";
                 string APNS_P12_PWD = "P@ssword1";
 
                 payload1.AddCustom("flag", notification_type);
@@ -233,34 +233,34 @@ namespace RBS.Notification
             CustomItems = new Dictionary<string, object[]>();
         }
 
-        public NotificationPayload(string deviceToken, string alert)
+        public NotificationPayload(string deviceToken, string alert, string title)
         {
             DeviceToken = deviceToken;
-            Alert = new NotificationAlert() { Body = alert };
+            Alert = new NotificationAlert() { Body = alert, Title = title };
             CustomItems = new Dictionary<string, object[]>();
         }
 
-        public NotificationPayload(string deviceToken, string alert, int badge)
+        public NotificationPayload(string deviceToken, string alert, int badge, string title)
         {
             DeviceToken = deviceToken;
-            Alert = new NotificationAlert() { Body = alert };
+            Alert = new NotificationAlert() { Body = alert, Title = title };
             Badge = badge;
             CustomItems = new Dictionary<string, object[]>();
         }
 
-        public NotificationPayload(string deviceToken, string alert, int badge, string sound)
+        public NotificationPayload(string deviceToken, string alert, int badge, string sound, string title)
         {
             DeviceToken = deviceToken;
-            Alert = new NotificationAlert() { Body = alert };
+            Alert = new NotificationAlert() { Body = alert, Title = title };
             Badge = badge;
             Sound = sound;
             CustomItems = new Dictionary<string, object[]>();
         }
 
-        public NotificationPayload(string deviceToken, string alert, string content, int badge, string sound)
+        public NotificationPayload(string deviceToken, string alert, string content, int badge, string sound, string title)
         {
             DeviceToken = deviceToken;
-            Alert = new NotificationAlert() { Body = alert };
+            Alert = new NotificationAlert() { Body = alert, Title = title };
             Content = content;
             Badge = badge;
             Sound = sound;
@@ -286,7 +286,15 @@ namespace RBS.Notification
                     && string.IsNullOrEmpty(this.Alert.ActionLocalizedKey)
                     && (this.Alert.LocalizedArgs == null || this.Alert.LocalizedArgs.Count <= 0))
                 {
-                    aps["alert"] = new JValue(this.Alert.Body);
+                    JObject jsonAlert = new JObject();
+
+                    if (!string.IsNullOrEmpty(this.Alert.Title))
+                        jsonAlert["title"] = new JValue(this.Alert.Title);
+
+                    if (!string.IsNullOrEmpty(this.Alert.Body))
+                        jsonAlert["body"] = new JValue(this.Alert.Body);
+
+                    aps["alert"] = jsonAlert;
                 }
                 else
                 {
@@ -297,6 +305,9 @@ namespace RBS.Notification
 
                     if (this.Alert.LocalizedArgs != null && this.Alert.LocalizedArgs.Count > 0)
                         jsonAlert["loc-args"] = new JArray(this.Alert.LocalizedArgs.ToArray());
+
+                    if (!string.IsNullOrEmpty(this.Alert.Title))
+                        jsonAlert["title"] = new JValue(this.Alert.Title);
 
                     if (!string.IsNullOrEmpty(this.Alert.Body))
                         jsonAlert["body"] = new JValue(this.Alert.Body);
@@ -353,6 +364,7 @@ namespace RBS.Notification
         /// </summary>
         public NotificationAlert()
         {
+            Title = null;
             Body = null;
             ActionLocalizedKey = null;
             LocalizedKey = null;
@@ -367,7 +379,11 @@ namespace RBS.Notification
             get;
             set;
         }
-
+        public string Title
+        {
+            get;
+            set;
+        }
         /// <summary>
         /// Action Button's Localized Key
         /// </summary>

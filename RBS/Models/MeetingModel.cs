@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using System.Web.Mvc;
 
 namespace RBS.Models
 {
@@ -60,5 +61,10 @@ namespace RBS.Models
         [DisplayName("Recurrence End Date")]
         [StringLength(10)]
         public string SCCEndDate { get; set; }
+        [DisplayName("Notification")]
+        public string Notification { get; set; }
+        public string NotificationStatus { get; set; }
+
+        public IEnumerable<SelectListItem> Notifications { get; set; }
     }
 }
