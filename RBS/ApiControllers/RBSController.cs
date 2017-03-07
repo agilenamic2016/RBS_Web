@@ -867,7 +867,7 @@ namespace RBS.ApiControllers
                                     ParticipantModel participant = new ParticipantModel();
                                     participant.MeetingID = Convert.ToInt32(meetingItem.ID);
                                     participant.UserID = Convert.ToInt32(id);
-                                    participant.CreatedBy = userId;
+                                    participant.CreatedBy = id;
                                     participant.CreatedDate = DateTime.Now;
 
                                     db.Participants.Add(participant);
