@@ -226,22 +226,13 @@ namespace RBS.ApiControllers
                     if (IsSessionValid(sessionKey, out userId))
                     {
                         int id = Convert.ToInt32(selectedUserId);
-
-                        //string datetimenow = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-                        //DateTime datetimenowfromzero= DateTime.ParseExact(datetimenow, "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
-                        //IQueryable<MeetingModel> meetings = db.Meetings.Where(a => a.BookingDate >= datetimenowfromzero);
-                        //var queryUSer = db.Users.Where(c => c.ID == id).FirstOrDefault();
-                        //string userName = queryUSer.Username;
-                        //IQueryable<MeetingModel> meetings = from ml in db.Meetings
-                        //                                    join pl in db.Participants on ml.ID equals pl.MeetingID
-                        //                                    where (pl.UserID == id || ml.CreatedBy == userName) && ml.BookingDate >= datetimenowfromzero
-                        //                                    select ml;
+                        
                         var todayDate = DateTime.Today;
                         var startingTime = MilitaryTime.ChangeToMilitaryTime(DateTime.Now);
 
                         var queryUSer = db.Users.Where(c => c.ID == id).FirstOrDefault();
                         string userName = queryUSer.Username;
-                        string tempQuery = "SELECT A.* FROM MeetingModel A left JOIN ParticipantModel B on A.ID = B.MeetingID "
+                        string tempQuery = "SELECT distinct A.* FROM MeetingModel A left JOIN ParticipantModel B on A.ID = B.MeetingID "
                                          + "WHERE (B.UserID='" + selectedUserId + "' or A.CreatedBy='" + userName + "') AND BookingDate >= '" + todayDate + "'";
 
                         var meetings = db.Meetings.SqlQuery(tempQuery).ToList().AsQueryable();
@@ -862,12 +853,19 @@ namespace RBS.ApiControllers
                         {
                             foreach (var meetingItem in meetingList)
                             {
+                                var participantList = db.Participants.Where(c => c.MeetingID == meetingItem.ID);
+                                if (participantList != null)
+                                {
+                                    db.Participants.RemoveRange(participantList);
+                                    db.SaveChanges();
+                                }
+
                                 foreach (var id in userList)
                                 {
                                     ParticipantModel participant = new ParticipantModel();
                                     participant.MeetingID = Convert.ToInt32(meetingItem.ID);
                                     participant.UserID = Convert.ToInt32(id);
-                                    participant.CreatedBy = id;
+                                    participant.CreatedBy = userId;
                                     participant.CreatedDate = DateTime.Now;
 
                                     db.Participants.Add(participant);

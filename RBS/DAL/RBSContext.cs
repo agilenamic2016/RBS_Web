@@ -17,6 +17,8 @@ namespace RBS.DAL
         public DbSet<RoomModel> Rooms { get; set; }
         public DbSet<SessionModel> Sessions { get; set; }
         public DbSet<UserModel> Users { get; set; }
+        public DbSet<DumpParticipantModel> DumpParticipant { get; set; }
+        public DbSet<DumpUserModel> DumpUser { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {

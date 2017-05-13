@@ -72,7 +72,7 @@ namespace RBS.Controllers
             
             var queryUSer = db.Users.Where(c => c.Username == context.UserID).FirstOrDefault();
             int userID = queryUSer.ID;
-            string tempQuery = "SELECT A.* FROM MeetingModel A left JOIN ParticipantModel B on A.ID = B.MeetingID "
+            string tempQuery = "SELECT distinct A.* FROM MeetingModel A left JOIN ParticipantModel B on A.ID = B.MeetingID "
                              + "WHERE (B.UserID='" + userID + "' or A.CreatedBy='" + context.UserID + "') AND BookingDate >= '" + todayDate + "'";
 
             var meetings = db.Meetings.SqlQuery(tempQuery).ToList().AsQueryable();

@@ -8,6 +8,7 @@ using RBS.Models;
 using RBS.ViewModels;
 using System;
 using PagedList;
+using System.Collections.Generic;
 
 namespace RBS.Controllers
 {
@@ -329,7 +330,48 @@ namespace RBS.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult DeleteConfirmed(int id)
         {
+            List<ParticipantModel> participantModel = db.Participants.Where(c => c.UserID == id).ToList();
+
+            if (participantModel != null)
+            {
+                foreach (var part in participantModel)
+                {
+                    DumpParticipantModel dumpParticipantModel = new DumpParticipantModel();
+                    dumpParticipantModel.RecordID = Guid.NewGuid();
+                    dumpParticipantModel.DeleteDate = DateTime.Now;
+                    dumpParticipantModel.ID = part.ID;
+                    dumpParticipantModel.MeetingID = part.MeetingID;
+                    dumpParticipantModel.UserID = part.UserID;
+                    dumpParticipantModel.CreatedBy = part.CreatedBy;
+                    dumpParticipantModel.CreatedDate = part.CreatedDate;
+                    db.DumpParticipant.Add(dumpParticipantModel);
+                    db.SaveChanges();
+                }
+
+                db.Participants.RemoveRange(participantModel);
+                db.SaveChanges();
+            }
+
             UserModel userModel = db.Users.Find(id);
+
+            DumpUserModel dumpUserModel = new DumpUserModel();
+            dumpUserModel.RecordID = Guid.NewGuid();
+            dumpUserModel.DeleteDate = DateTime.Now;
+            dumpUserModel.ID = userModel.ID;
+            dumpUserModel.RoleID = userModel.RoleID;
+            dumpUserModel.DepartmentID = userModel.DepartmentID;
+            dumpUserModel.Username = userModel.Username;
+            dumpUserModel.Name = userModel.Name;
+            dumpUserModel.Password = userModel.Password;
+            dumpUserModel.TokenID = userModel.TokenID;
+            dumpUserModel.IsActive = userModel.IsActive;
+            dumpUserModel.CreatedBy = userModel.CreatedBy;
+            dumpUserModel.CreatedDate = userModel.CreatedDate;
+            dumpUserModel.UpdatedBy = userModel.UpdatedBy;
+            dumpUserModel.UpdatedDate = userModel.UpdatedDate;
+            db.DumpUser.Add(dumpUserModel);
+            db.SaveChanges();
+
             db.Users.Remove(userModel);
             db.SaveChanges();
             return RedirectToAction("Index");

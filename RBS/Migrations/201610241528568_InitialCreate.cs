@@ -151,7 +151,7 @@ namespace RBS.Migrations
                 .PrimaryKey(t => t.ID)
                 .ForeignKey("dbo.UserModel", t => t.UserID, cascadeDelete: true)
                 .Index(t => t.UserID);
-            
+
         }
         
         public override void Down()
@@ -177,6 +177,8 @@ namespace RBS.Migrations
             DropTable("dbo.LogModel");
             DropTable("dbo.DepartmentModel");
             DropTable("dbo.ConfigModel");
+            DropTable("dbo.DumpUserModel");
+            DropTable("dbo.DumpParticipantModel");
         }
     }
 }

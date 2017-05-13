@@ -190,9 +190,15 @@
     <Compile Include="Migrations\201701041506411_MeetingValidationPatch.Designer.cs">
       <DependentUpon>201701041506411_MeetingValidationPatch.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201705131448086_Dumptable.cs" />
+    <Compile Include="Migrations\201705131448086_Dumptable.Designer.cs">
+      <DependentUpon>201705131448086_Dumptable.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\ConfigModel.cs" />
     <Compile Include="Models\DepartmentModel.cs" />
+    <Compile Include="Models\DumpParticipantModel.cs" />
+    <Compile Include="Models\DumpUserModel.cs" />
     <Compile Include="Models\LogModel.cs" />
     <Compile Include="Models\ParticipantModel.cs" />
     <Compile Include="Models\RoleModel.cs" />
@@ -354,6 +360,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201701041506411_MeetingValidationPatch.resx">
       <DependentUpon>201701041506411_MeetingValidationPatch.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201705131448086_Dumptable.resx">
+      <DependentUpon>201705131448086_Dumptable.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>
